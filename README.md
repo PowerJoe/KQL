@@ -1,231 +1,135 @@
-DeviceProcessEvents
-| where Timestamp > ago(7d)
-| where InitiatingProcessFileName in~ ("node.exe", "npm.cmd", "npx.cmd", "bun.exe")
-| where ProcessCommandLine has "@antv/"
-| where ProcessCommandLine has_any (
-    "g2", "g6", "x6", "l7", "s2", "f2", "g2plot", "graphin",
-    "data-set", "util", "component", "scale", "coord", "attr",
-    "adjust", "matrix-util", "color-util", "color-schema",
-    "smart-color", "ava", "ava-react", "ckb", "data-wizard",
-    "lite-insight", "insight-component", "narrative-text",
-    "thumbnails", "word-scale-chart", "chart-linter",
-    "layout-wasm", "layout-gpu", "graphlib", "algorithm",
-    "hierarchy", "gi-sdk", "gi-assets", "gi-common",
-    "gi-cli", "gi-theme", "gi-mock", "gi-public",
-    "xflow", "larkmap", "l7plot", "dipper",
-    "x6-geometry", "x6-common", "x6-react", "x6-vue",
-    "x6-plugin", "x6-angular", "x6-components",
-    "g-lite", "g-base", "g-canvas", "g-svg", "g-webgl",
-    "g-webgpu", "g-mobile", "g-camera", "g-gesture",
-    "g-pattern", "g-math", "g-compat", "g-device",
-    "g-plugin", "g-web", "g-lottie", "g-canvaskit",
-    "g-image", "g-perf", "g-css", "g-layout",
-    "f6", "f-engine", "f-react", "f-vue", "f-wx",
-    "f2-react", "f2-vue", "f2-wx", "f2-my",
-    "f2-canvas", "f2-wordcloud", "f2-algorithm",
-    "f2-graphic", "f2-site", "f2-context",
-    "li-p2", "li-sdk", "li-editor", "li-core",
-    "li-analysis", "li-sam", "li-aiearth",
-    "gi-assets-advance", "gi-assets-basic",
-    "gi-assets-scene", "gi-assets-xlab",
-    "gi-assets-janusgraph", "gi-assets-neo4j",
-    "gi-assets-tugraph", "gi-assets-algorithm",
-    "gi-assets-graphscope", "gi-assets-hugegraph",
-    "gi-assets-galaxybase", "gi-sdk-app",
-    "mcp-server", "gpt-vis", "sam", "t8", "a8",
-    "torch", "stat", "expr", "translator",
-    "dumi-theme", "gatsby-theme", "github-config",
-    "semantic-release", "istanbul", "awards",
-    "async-hook", "event-emitter", "dom-util",
-    "geo-coord", "gl-matrix", "d3-color",
-    "d3-interpolate", "path-util", "matrix-util",
-    "webgpu-graph", "g-webgpu-engine", "g-webgpu-core",
-    "g-webgpu-compiler", "g-webgpu-unitchart",
-    "g-webgpu-raytracer", "g-webgl-compute",
-    "dw-random", "dw-util", "dw-transform",
-    "dw-analyzer", "data-samples", "vis-predict",
-    "chart-visualization", "chart-node",
-    "g2-brush", "g2-plugin-slider", "g2-ssr",
-    "g2-extension", "g6-core", "g6-pc", "g6-wx",
-    "g6-ssr", "g6-mobile", "g6-alipay", "g6-cli",
-    "g6-editor", "g6-plugin", "g6-plugins",
-    "g6-element", "g6-extension", "g6-react",
-    "graphin-components", "graphin-graphscope",
-    "graphin-icons", "xflow-core", "xflow-diff",
-    "xflow-extension", "xflow-hook",
-    "l7-layers", "l7-core", "l7-source", "l7-map",
-    "l7-maps", "l7-utils", "l7-renderer", "l7-scene",
-    "l7-component", "l7-draw", "l7-district",
-    "l7-react", "l7-three", "l7-mini", "l7-pass",
-    "l7-mapkit", "l7-leaflet", "l7-editor",
-    "l7-extension", "l7-composite",
-    "s2-react", "s2-vue", "s2-ssr", "s2-react-components",
-    "infographic", "vendor", "dipper-component",
-    "dipper-hooks", "dipper-map", "knowledge",
-    "narrative-text-editor", "narrative-text-schema",
-    "narrative-text-vis", "g2-extension-ava",
-    "g2-extension-3d", "g2-extension-plot",
-    "ava-react", "mcp-server-chart", "mcp-server-antv"
-)
-| project Timestamp, DeviceName, AccountName,
-          ProcessCommandLine, InitiatingProcessFileName,
-          InitiatingProcessCommandLine, ReportId
+# 🛡️ KQL Detection Rules
 
+> A curated collection of KQL detection and hunting rules for Microsoft Sentinel and Microsoft Defender XDR — built from real-world incidents, threat intelligence, and hands-on SOC experience.
 
+---
 
+## 📁 Repository Structure
 
+```
+kql-detection-rules/
+├── sentinel/
+│   ├── analytics/          # Scheduled Analytics Rules
+│   ├── hunting/            # Hunting Queries
+│   └── workbooks/          # Workbook queries
+├── defender/
+│   ├── custom-detections/  # MDE Custom Detection Rules
+│   └── hunting/            # Advanced Hunting Queries
+├── threat-intelligence/
+│   └── supply-chain/       # Supply chain campaign rules
+│       └── shai-hulud/     # Shai-Hulud campaign IOCs & rules
+└── README.md
+```
 
+---
 
+## 🔍 Rule Categories
 
-DeviceProcessEvents
-| where Timestamp > ago(7d)
-| where InitiatingProcessFileName in~ ("node.exe", "npm.cmd", "npx.cmd", "bun.exe")
-| where ProcessCommandLine has_any (
-    // Socket gedetecteerde non-antv packages
-    "echarts-for-react",
-    "timeago.js",
-    "timeago-react",
-    "size-sensor",
-    "canvas-nest.js",
-    "jest-canvas-mock",
-    "jest-date-mock",
-    "jest-electron",
-    "jest-expect",
-    "jest-less-loader",
-    "jest-random-mock",
-    "jest-url-loader",
-    "ribbon.js",
-    "slice.js",
-    "byte-parser",
-    "miz",
-    "word-width",
-    "uri-parse",
-    "ai-figure",
-    "amapcn",
-    "ast-plugin",
-    "babel-plugin-version",
-    "boring-avatars-vanilla",
-    "fixed-round",
-    "filesize.js",
-    "gantt-for-react",
-    "limit-size",
-    "lint-md",
-    "lint-md-cli",
-    "mcp-echarts",
-    "mcp-mermaid",
-    "onfire.js",
-    "react-adsense",
-    "relationship.js",
-    "xmorse",
-    // @tanstack packages
-    "@tanstack/react-router",
-    "@tanstack/solid-router",
-    "@tanstack/vue-router",
-    "@tanstack/router-core",
-    "@tanstack/react-start",
-    "@tanstack/solid-start",
-    "@tanstack/vue-start",
-    // @uipath packages
-    "@uipath/apollo-react",
-    "@uipath/apollo-core",
-    "@uipath/robot",
-    "@uipath/cli",
-    "@uipath/agent-sdk",
-    "@uipath/agent.sdk",
-    "@uipath/orchestrator-tool",
-    "@uipath/rpa-tool",
-    // @mistralai packages
-    "@mistralai/mistralai",
-    "@mistralai/mistralai-azure",
-    "@mistralai/mistralai-gcp",
-    // @openclaw-cn packages
-    "@openclaw-cn/feishu",
-    "@openclaw-cn/cli",
-    "@openclaw-cn/libsignal",
-    "@openclaw-cn/toutiao-ops",
-    // @starmind packages
-    "@starmind/collector-cli",
-    // @lint-md packages
-    "@lint-md/core",
-    "@lint-md/cli",
-    "@lint-md/parser",
-    // @opensearch packages
-    "@opensearch-project/opensearch",
-    // intercom
-    "intercom-client"
-)
-| project Timestamp, DeviceName, AccountName,
-          ProcessCommandLine, InitiatingProcessFileName,
-          InitiatingProcessCommandLine, ReportId
+### 🏭 Supply Chain
+Detection rules targeting software supply chain attacks across npm, PyPI, and other package ecosystems.
 
+| Rule | Platform | Severity | MITRE |
+|---|---|---|---|
+| Shai-Hulud C2 Exfiltration | Sentinel / MDE | 🔴 High | T1041 |
+| Shai-Hulud NPM Package Execution | Sentinel / MDE | 🔴 High | T1195.002 |
+| Shai-Hulud CI/CD Secret Harvesting | Sentinel / MDE | 🔴 High | T1552.001 |
+| Shai-Hulud GitHub Repo Creation | Sentinel / MDE | 🟠 Medium | T1537 |
+| Shai-Hulud VS Code/Claude Code Backdoor | Sentinel / MDE | 🔴 High | T1176 |
+| Shai-Hulud Obfuscated index.js Drop | Sentinel / MDE | 🟠 Medium | T1027 |
+| Shai-Hulud GitHub API Abuse | Sentinel / MDE | 🟠 Medium | T1537 |
 
+### 🔗 Generic Supply Chain Coverage
+Broad detection rules applicable to any supply chain attack, not campaign-specific.
 
+| Rule | Platform | Severity | MITRE |
+|---|---|---|---|
+| Package Manager Outbound C2 | Sentinel / MDE | 🔴 High | T1041 |
+| Suspicious Lifecycle Hook Execution | Sentinel / MDE | 🔴 High | T1059.007 |
+| Package Manager Credential File Access | Sentinel / MDE | 🔴 High | T1552.001 |
+| Obfuscated Script via Package Manager | Sentinel / MDE | 🟠 Medium | T1027 |
+| Package Manager Spawning Child Process | Sentinel / MDE | 🔴 High | T1059 |
+| Automated GitHub Repository Creation | Sentinel / MDE | 🟠 Medium | T1537 |
+| Mass Package Version Republish | Sentinel / MDE | 🔴 High | T1195.002 |
 
+---
 
+## 🚀 Getting Started
 
+### Microsoft Sentinel
+1. Navigate to **Microsoft Sentinel → Analytics → Create → Scheduled query rule**
+2. Copy the KQL from the rule file
+3. Configure the frequency and lookback period as specified in the rule header
+4. Map entities as documented
+5. Set severity and MITRE tags
 
-DeviceProcessEvents
-| where Timestamp > ago(7d)
-| where InitiatingProcessFileName in~ ("python.exe", "pip.exe", "pip3.exe")
-| where ProcessCommandLine has_any (
-    "durabletask==1.4.1",
-    "durabletask==1.4.2",
-    "durabletask==1.4.3",
-    "mistralai==2.4.6",
-    "guardrails-ai==0.10.1",
-    "lightning==2.6.2",
-    "lightning==2.6.3"
-)
-| project Timestamp, DeviceName, AccountName,
-          ProcessCommandLine, InitiatingProcessFileName, ReportId
+### Microsoft Defender XDR
+1. Navigate to **security.microsoft.com → Hunting → Custom detection rules**
+2. Paste the KQL query
+3. Set the rule frequency and alert title
+4. Configure impacted entities
+5. Save and enable
 
+---
 
+## 📋 Rule Header Format
 
+Every rule in this repository follows this header format:
 
+```
+// ============================================================
+// Rule Name    : <name>
+// Platform     : Sentinel | MDE | Both
+// Severity     : Low | Medium | High | Critical
+// Frequency    : Every Xh
+// Lookback     : Xh
+// MITRE Tactic : <tactic>
+// MITRE Tech   : <technique>
+// Author       : PJ131
+// Last Updated : YYYY-MM-DD
+// Description  : <description>
+// ============================================================
+```
 
-let ShaihululudC2 = dynamic([
-    "t.m-kosche.com",
-    "filev2.getsession.org"
-]);
-let GitHubMarkers = dynamic([
-    "niaga og ew ereh",
-    "duluh-iahs",
-    "niagA oG eW ereH",
-    "duluH-iahS"
-]);
-let CredentialTargets = dynamic([
-    "GITHUB_TOKEN",
-    "ACTIONS_ID_TOKEN_REQUEST_URL",
-    "AWS_ACCESS_KEY_ID",
-    "AWS_SECRET_ACCESS_KEY",
-    "AWS_SESSION_TOKEN",
-    "KUBECONFIG",
-    "VAULT_TOKEN",
-    "VAULT_ADDR"
-]);
-DeviceProcessEvents
-| where Timestamp > ago(7d)
-| where ProcessCommandLine has_any (ShaihululudC2)
-    or ProcessCommandLine has_any (GitHubMarkers)
-    or ProcessCommandLine has_any (CredentialTargets)
-| where InitiatingProcessFileName in~ (
-    "node.exe", "bun.exe", "npm.cmd", 
-    "npx.cmd", "python.exe", "pip.exe"
-)
-| project Timestamp, DeviceName, AccountName,
-          ProcessCommandLine, InitiatingProcessFileName,
-          InitiatingProcessCommandLine, ReportId
+---
 
+## 🎯 Hunting Queries
 
+Hunting queries are designed for **proactive threat hunting** rather than automated alerting. They are located in the `hunting/` directories and are optimized for:
 
+- Broad coverage over longer timeframes
+- Lower false positive rates in manual analysis
+- Pivoting on known IOCs from threat intelligence
 
-DeviceNetworkEvents
-| where Timestamp > ago(7d)
-| where RemoteUrl has "api.github.com/user/repos"
-| where InitiatingProcessFileName in~ (
-    "node.exe", "bun.exe", "python.exe"
-)
-| project Timestamp, DeviceName, AccountName,
-          RemoteUrl, RemoteIP,
-          InitiatingProcessFileName,
-          InitiatingProcessCommandLine, ReportId
+---
+
+## ⚠️ Disclaimer
+
+> These rules are provided **as-is** for educational and defensive purposes. Always test in a non-production environment before deploying. Rules may generate false positives depending on your environment — tuning is recommended before enabling automated alerting.
+>
+> IOCs and rule logic are based on publicly available threat intelligence. Always validate against the latest sources before deployment.
+
+---
+
+## 📚 Sources & References
+
+- [Socket Research — Shai-Hulud Campaign](https://socket.dev)
+- [Endor Labs](https://www.endorlabs.com)
+- [Aikido Security](https://www.aikido.dev)
+- [Microsoft MITRE ATT&CK mapping](https://attack.mitre.org)
+- [KQL Reference](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/)
+
+---
+
+## 📺 YouTube
+
+Rules from this repository are featured on **[Hackin' with PJ131](https://youtube.com/@hackinwithpj131)** — covering red team, blue team, detection engineering, and HackTheBox walkthroughs.
+
+---
+
+## 📄 License
+
+MIT License — free to use, modify, and distribute. Attribution appreciated.
+
+---
+
+*Built by a security consultant with OSCP, CISSP & SC-200 — from the SOC to the lab.*
