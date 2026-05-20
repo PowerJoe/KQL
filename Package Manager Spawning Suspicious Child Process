@@ -1,0 +1,34 @@
+Name: Supply Chain - Package Manager Spawning Suspicious Child Process
+Severity: High
+QueryFrequency: 1h
+QueryPeriod: 1h
+MITRETactics: Execution
+MITRETechniques: T1059
+EntityMapping:
+  - Device: DeviceName
+  - Account: AccountName
+
+
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where InitiatingProcessFileName in~ (
+    "node.exe", "npm.cmd", "npx.cmd", "bun.exe",
+    "python.exe", "pip.exe"
+)
+| where FileName in~ (
+    // Shell spawning
+    "cmd.exe", "powershell.exe", "pwsh.exe",
+    "bash.exe", "sh.exe", "wscript.exe",
+    "cscript.exe", "mshta.exe",
+    // Network tools
+    "curl.exe", "wget.exe",
+    // Credential tools
+    "net.exe", "netstat.exe",
+    // Recon
+    "whoami.exe", "ipconfig.exe", "systeminfo.exe"
+)
+| project Timestamp, DeviceName, AccountName,
+          FileName, ProcessCommandLine,
+          InitiatingProcessFileName,
+          InitiatingProcessCommandLine,
+          InitiatingProcessParentFileName, ReportId
