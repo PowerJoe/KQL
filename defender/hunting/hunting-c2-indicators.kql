@@ -1,0 +1,86 @@
+// ============================================================
+// Rule Name    : Hunting - Shai-Hulud C2 and Campaign Indicators
+// Platform     : Sentinel / MDE
+// Type         : Hunting Query
+// Severity     : High
+// Lookback     : 7d
+// MITRE Tactic : Exfiltration, CredentialAccess, DefenseEvasion
+// MITRE Tech   : T1041, T1552, T1027
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Comprehensive hunting query covering all known
+//                Shai-Hulud C2 indicators, GitHub markers, and
+//                credential targets. Combines network and process
+//                telemetry for full coverage.
+//                Primary C2: t.m-kosche.com (TCP/443, end-to-end encrypted)
+//                Fallback: filev2.getsession.org (Session P2P network)
+// Sources      : Socket Research, Endor Labs, Microsoft, Aikido Security
+// ============================================================
+
+let ShaiHuludC2 = dynamic([
+    "t.m-kosche.com",
+    "filev2.getsession.org"
+]);
+let GitHubMarkers = dynamic([
+    "niaga og ew ereh",
+    "duluh-iahs",
+    "niagA oG eW ereH",
+    "duluH-iahS",
+    "Here We Go Again"
+]);
+let CredentialTargets = dynamic([
+    "GITHUB_TOKEN",
+    "ACTIONS_ID_TOKEN_REQUEST_URL",
+    "ACTIONS_ID_TOKEN_REQUEST_TOKEN",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_SESSION_TOKEN",
+    "AWS_SHARED_CREDENTIALS_FILE",
+    "AWS_WEB_IDENTITY_TOKEN_FILE",
+    "AWS_ROLE_ARN",
+    "KUBECONFIG",
+    "KUBERNETES_SERVICE_HOST",
+    "VAULT_TOKEN",
+    "VAULT_ADDR",
+    "VAULT_AUTH_TOKEN",
+    "VAULT_API_TOKEN"
+]);
+let PackageManagers = dynamic([
+    "node.exe", "bun.exe", "npm.cmd",
+    "npx.cmd", "python.exe", "pip.exe", "pip3.exe"
+]);
+// Network IOC hits
+DeviceNetworkEvents
+| where Timestamp > ago(7d)
+| where RemoteUrl has_any (ShaiHuludC2)
+| where InitiatingProcessFileName in~ (PackageManagers)
+| extend DetectionType = "C2 Network IOC"
+| project Timestamp, DeviceName, AccountName,
+          DetectionType, RemoteUrl, RemoteIP,
+          InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId
+| union (
+    // Process credential access
+    DeviceProcessEvents
+    | where Timestamp > ago(7d)
+    | where ProcessCommandLine has_any (CredentialTargets)
+    | where InitiatingProcessFileName in~ (PackageManagers)
+    | extend DetectionType = "Credential Access", RemoteUrl = "", RemoteIP = ""
+    | project Timestamp, DeviceName, AccountName,
+              DetectionType, RemoteUrl, RemoteIP,
+              InitiatingProcessFileName,
+              InitiatingProcessCommandLine = ProcessCommandLine, ReportId
+)
+| union (
+    // GitHub campaign markers
+    DeviceProcessEvents
+    | where Timestamp > ago(7d)
+    | where ProcessCommandLine has_any (GitHubMarkers)
+    | where InitiatingProcessFileName in~ (PackageManagers)
+    | extend DetectionType = "GitHub Campaign Marker", RemoteUrl = "", RemoteIP = ""
+    | project Timestamp, DeviceName, AccountName,
+              DetectionType, RemoteUrl, RemoteIP,
+              InitiatingProcessFileName,
+              InitiatingProcessCommandLine = ProcessCommandLine, ReportId
+)
+| sort by Timestamp desc

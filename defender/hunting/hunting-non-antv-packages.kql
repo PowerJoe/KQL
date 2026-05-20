@@ -1,0 +1,103 @@
+// ============================================================
+// Rule Name    : Hunting - Shai-Hulud Non-@antv Package Execution
+// Platform     : Sentinel / MDE
+// Type         : Hunting Query
+// Severity     : High
+// Lookback     : 7d
+// MITRE Tactic : InitialAccess
+// MITRE Tech   : T1195.002 - Supply Chain Compromise
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Hunting query covering compromised packages outside
+//                the @antv namespace from the Shai-Hulud campaign.
+//                Includes @tanstack, @uipath, @mistralai, timeago.js,
+//                echarts-for-react, jest packages, and others.
+//                Also covers previous TanStack wave (May 11 2026).
+// Sources      : Socket Research (socket.dev)
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(7d)
+| where InitiatingProcessFileName in~ ("node.exe", "npm.cmd", "npx.cmd", "bun.exe")
+| where ProcessCommandLine has_any (
+    // Standalone packages
+    "echarts-for-react",
+    "timeago.js",
+    "timeago-react",
+    "size-sensor",
+    "canvas-nest.js",
+    "jest-canvas-mock",
+    "jest-date-mock",
+    "jest-electron",
+    "jest-expect",
+    "jest-less-loader",
+    "jest-random-mock",
+    "jest-url-loader",
+    "ribbon.js",
+    "slice.js",
+    "byte-parser",
+    "miz",
+    "word-width",
+    "uri-parse",
+    "ai-figure",
+    "amapcn",
+    "ast-plugin",
+    "babel-plugin-version",
+    "boring-avatars-vanilla",
+    "fixed-round",
+    "filesize.js",
+    "gantt-for-react",
+    "limit-size",
+    "lint-md",
+    "lint-md-cli",
+    "mcp-echarts",
+    "mcp-mermaid",
+    "onfire.js",
+    "react-adsense",
+    "relationship.js",
+    "xmorse",
+    // @tanstack packages (TanStack wave May 11)
+    "@tanstack/react-router",
+    "@tanstack/solid-router",
+    "@tanstack/vue-router",
+    "@tanstack/router-core",
+    "@tanstack/react-start",
+    "@tanstack/solid-start",
+    "@tanstack/vue-start",
+    "@tanstack/router-plugin",
+    "@tanstack/router-cli",
+    "@tanstack/history",
+    // @uipath packages
+    "@uipath/apollo-react",
+    "@uipath/apollo-core",
+    "@uipath/robot",
+    "@uipath/cli",
+    "@uipath/agent-sdk",
+    "@uipath/agent.sdk",
+    "@uipath/orchestrator-tool",
+    "@uipath/rpa-tool",
+    "@uipath/maestro-tool",
+    "@uipath/solution-tool",
+    // @mistralai packages
+    "@mistralai/mistralai",
+    "@mistralai/mistralai-azure",
+    "@mistralai/mistralai-gcp",
+    // @openclaw-cn packages
+    "@openclaw-cn/feishu",
+    "@openclaw-cn/cli",
+    "@openclaw-cn/libsignal",
+    "@openclaw-cn/toutiao-ops",
+    // @starmind packages
+    "@starmind/collector-cli",
+    // @lint-md packages
+    "@lint-md/core",
+    "@lint-md/cli",
+    "@lint-md/parser",
+    // @opensearch packages
+    "@opensearch-project/opensearch",
+    // intercom
+    "intercom-client"
+)
+| project Timestamp, DeviceName, AccountName,
+          ProcessCommandLine, InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId

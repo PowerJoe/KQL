@@ -1,0 +1,52 @@
+// ============================================================
+// Rule Name    : Hunting - Shai-Hulud GitHub Repository Creation Pattern
+// Platform     : Sentinel / MDE
+// Type         : Hunting Query
+// Severity     : Medium
+// Lookback     : 7d
+// MITRE Tactic : Exfiltration
+// MITRE Tech   : T1537 - Transfer Data to Cloud Account
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects automated GitHub repository creation used
+//                as fallback exfiltration by Shai-Hulud malware.
+//                Repositories use Dune-themed naming patterns:
+//                  <dune-word>-<dune-word>-<3 digits>
+//                Examples: sayyadina-stillsuit-852
+//                          atreides-ornithopter-112
+//                          harkonnen-phibian-552
+//                          fremen-fedaykin-225
+//                Data stored in: results/results-<timestamp>-<counter>.json
+//                README contains: "niaga og ew ereh :duluh-iahs"
+//                2,900+ rogue repos observed at time of writing.
+// Sources      : Socket Research, Endor Labs
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(7d)
+| where RemoteUrl has "api.github.com"
+| where RemoteUrl has_any (
+    "/user/repos",
+    "/repos/",
+    "/contents/results/",
+    "/git/refs",
+    "/git/commits",
+    "/git/trees",
+    "/git/blobs"
+)
+| where InitiatingProcessFileName in~ (
+    "node.exe", "bun.exe", "python.exe",
+    "npm.cmd", "npx.cmd"
+)
+| summarize
+    RequestCount = count(),
+    UniqueEndpoints = dcount(RemoteUrl),
+    FirstSeen = min(Timestamp),
+    LastSeen = max(Timestamp),
+    Endpoints = make_set(RemoteUrl)
+    by DeviceName, AccountName, InitiatingProcessFileName, bin(Timestamp, 1h)
+| where RequestCount > 2
+| project FirstSeen, LastSeen, DeviceName, AccountName,
+          RequestCount, UniqueEndpoints,
+          InitiatingProcessFileName, Endpoints
+| sort by RequestCount desc

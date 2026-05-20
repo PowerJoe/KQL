@@ -1,0 +1,52 @@
+// ============================================================
+// Rule Name    : Hunting - Shai-Hulud Compromised PyPI Package Installation
+// Platform     : Sentinel / MDE
+// Type         : Hunting Query
+// Severity     : High
+// Lookback     : 7d
+// MITRE Tactic : InitialAccess
+// MITRE Tech   : T1195.002 - Supply Chain Compromise
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects installation of specific compromised PyPI
+//                package versions from the Shai-Hulud campaign.
+//                Uses exact version pinning for low false positives.
+//                Compromised versions published 2026-05-19.
+//                Also covers file-based detection for already installed
+//                packages.
+// Sources      : Socket Research (socket.dev)
+// ============================================================
+
+// Query 1: Installation detection (process-based)
+DeviceProcessEvents
+| where Timestamp > ago(7d)
+| where InitiatingProcessFileName in~ ("python.exe", "pip.exe", "pip3.exe")
+| where ProcessCommandLine has_any (
+    // Exact compromised versions
+    "durabletask==1.4.1",
+    "durabletask==1.4.2",
+    "durabletask==1.4.3",
+    "mistralai==2.4.6",
+    "guardrails-ai==0.10.1",
+    "lightning==2.6.2",
+    "lightning==2.6.3"
+)
+| project Timestamp, DeviceName, AccountName,
+          ProcessCommandLine, InitiatingProcessFileName, ReportId
+
+// Query 2: File-based detection (already installed)
+// Uncomment to run separately
+//DeviceFileEvents
+//| where Timestamp > ago(7d)
+//| where ActionType in ("FileCreated", "FileModified")
+//| where FolderPath has_any (
+//    "\\site-packages\\durabletask",
+//    "\\site-packages\\mistralai",
+//    "\\site-packages\\guardrails",
+//    "\\site-packages\\lightning"
+//)
+//| where InitiatingProcessFileName in~ ("python.exe", "pip.exe", "pip3.exe")
+//| project Timestamp, DeviceName, AccountName,
+//          FolderPath, FileName, SHA256,
+//          InitiatingProcessFileName,
+//          InitiatingProcessCommandLine, ReportId
