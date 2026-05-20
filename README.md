@@ -54,7 +54,7 @@ Hunting queries are designed for **proactive threat hunting** rather than automa
 
 ## ⚠️ Disclaimer
 
-> These rules are provided **as-is** for educational and defensive purposes. Always test in a non-production environment before deploying. Rules may generate false positives depending on your environment — tuning is recommended before enabling automated alerting.
+> These rules are provided **as-is** for educational and defensive purposes. Always test in a non-production environment before deploying. Rules may generate false positives depending on your environment, tuning is recommended before enabling automated alerting.
 >
 > IOCs and rule logic are based on publicly available threat intelligence. Always validate against the latest sources before deployment.
 
@@ -67,12 +67,6 @@ Hunting queries are designed for **proactive threat hunting** rather than automa
 - [Aikido Security](https://www.aikido.dev)
 - [Microsoft MITRE ATT&CK mapping](https://attack.mitre.org)
 - [KQL Reference](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/)
-
----
-
-## 📺 YouTube
-
-Rules from this repository are featured on **[Hackin' with PJ131](https://youtube.com/@hackinwithpj131)** — covering red team, blue team, detection engineering, and HackTheBox walkthroughs.
 
 ---
 
