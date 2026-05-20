@@ -1,0 +1,35 @@
+// ============================================================
+// Rule Name    : Shai-Hulud Obfuscated index.js Dropped in node_modules
+// Platform     : Sentinel / MDE
+// Severity     : Medium
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : DefenseEvasion
+// MITRE Tech   : T1027 - Obfuscated Files or Information
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects creation of index.js files in node_modules
+//                directories by package manager processes. Shai-Hulud
+//                injects a heavily obfuscated root-level index.js with
+//                a preinstall hook: "preinstall":"bun run index.js"
+//                Uses large string-array lookup table and custom
+//                decryptor exposed via globalThis as fc2edea72.
+// Sources      : Socket Research
+// ============================================================
+
+DeviceFileEvents
+| where Timestamp > ago(1h)
+| where FileName =~ "index.js"
+| where FolderPath has_any (
+    "node_modules",
+    "\\npm\\",
+    "\\AppData\\Roaming\\npm\\"
+)
+| where InitiatingProcessFileName in~ (
+    "node.exe", "npm.cmd", "npx.cmd", "bun.exe"
+)
+| where ActionType == "FileCreated"
+| project Timestamp, DeviceName, AccountName,
+          FolderPath, FileName, SHA256, ActionType,
+          InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId

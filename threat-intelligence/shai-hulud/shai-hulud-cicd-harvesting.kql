@@ -1,0 +1,51 @@
+// ============================================================
+// Rule Name    : Shai-Hulud CI/CD Secret Harvesting
+// Platform     : Sentinel / MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : CredentialAccess
+// MITRE Tech   : T1552.001 - Unsecured Credentials: Credentials in Files
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects attempts to access or enumerate CI/CD
+//                secrets and credentials targeted by Shai-Hulud.
+//                Covers GitHub, AWS, Kubernetes, Vault, Docker,
+//                SSH, and database credentials.
+//                Targets: GitHub Actions, GitLab CI, Jenkins,
+//                Azure DevOps, CircleCI, Vercel, Netlify.
+// Sources      : Socket Research, Endor Labs
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where InitiatingProcessFileName in~ ("node.exe", "npm.cmd", "bun.exe", "python.exe")
+| where ProcessCommandLine has_any (
+    // GitHub
+    "GITHUB_TOKEN",
+    "ACTIONS_ID_TOKEN_REQUEST_URL",
+    "ACTIONS_ID_TOKEN_REQUEST_TOKEN",
+    // AWS
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_SESSION_TOKEN",
+    "AWS_SHARED_CREDENTIALS_FILE",
+    "AWS_WEB_IDENTITY_TOKEN_FILE",
+    "AWS_ROLE_ARN",
+    // Kubernetes
+    "KUBECONFIG",
+    "KUBERNETES_SERVICE_HOST",
+    // Vault
+    "VAULT_TOKEN",
+    "VAULT_ADDR",
+    "VAULT_AUTH_TOKEN",
+    // SSH
+    ".ssh", "id_rsa", "id_ed25519",
+    // NPM
+    ".npmrc",
+    // Docker
+    ".docker/config.json"
+)
+| project Timestamp, DeviceName, AccountName,
+          ProcessCommandLine, InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId

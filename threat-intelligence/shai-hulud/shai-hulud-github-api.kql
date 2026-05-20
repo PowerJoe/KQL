@@ -1,0 +1,42 @@
+// ============================================================
+// Rule Name    : Shai-Hulud GitHub API Abuse
+// Platform     : Sentinel / MDE
+// Severity     : Medium
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : Exfiltration
+// MITRE Tech   : T1537 - Transfer Data to Cloud Account
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects suspicious GitHub API calls from package
+//                manager processes. Shai-Hulud uses GitHub API to
+//                validate tokens, enumerate packages, and create
+//                repositories for data exfiltration.
+//                Note: These are legitimate GitHub endpoints used
+//                maliciously — do not block by default. Use as
+//                detection opportunity for unexpected access patterns.
+// Detection Opportunities (Socket Research):
+//   https://registry.npmjs.org/-/npm/v1/tokens
+//   https://registry.npmjs.org/-/whoami
+//   https://registry.npmjs.org/-/v1/search?text=maintainer
+//   https://fulcio.sigstore.dev/api/v2/signingCert
+//   https://rekor.sigstore.dev/api/v1/log/entries
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(1h)
+| where RemoteUrl has_any (
+    "api.github.com",
+    "registry.npmjs.org/-/npm/v1/tokens",
+    "registry.npmjs.org/-/whoami",
+    "registry.npmjs.org/-/v1/search",
+    "fulcio.sigstore.dev",
+    "rekor.sigstore.dev"
+)
+| where InitiatingProcessFileName in~ (
+    "node.exe", "bun.exe", "npm.cmd", "npx.cmd", "python.exe"
+)
+| project Timestamp, DeviceName, AccountName,
+          RemoteUrl, RemoteIP,
+          InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId

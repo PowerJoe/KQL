@@ -1,0 +1,37 @@
+// ============================================================
+// Rule Name    : Shai-Hulud VS Code / Claude Code Backdoor Persistence
+// Platform     : Sentinel / MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : Persistence
+// MITRE Tech   : T1176 - Browser Extensions
+//                T1546 - Event Triggered Execution
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects file modifications in VS Code and Claude Code
+//                configuration directories initiated by package manager
+//                processes. New capability observed in latest Shai-Hulud
+//                variant — suggests attacker is planning for persistence
+//                after initial compromise cleanup.
+// Sources      : Aikido Security
+// ============================================================
+
+DeviceFileEvents
+| where Timestamp > ago(1h)
+| where FolderPath has_any (
+    "\\extensions\\",
+    "\\.vscode\\",
+    "\\Claude Code\\",
+    "\\Code\\User\\",
+    "\\AppData\\Roaming\\Code\\",
+    "\\AppData\\Local\\Programs\\Microsoft VS Code\\"
+)
+| where InitiatingProcessFileName in~ (
+    "node.exe", "npm.cmd", "npx.cmd", "bun.exe"
+)
+| where ActionType in ("FileCreated", "FileModified")
+| project Timestamp, DeviceName, AccountName,
+          FolderPath, FileName, ActionType,
+          InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId

@@ -1,0 +1,32 @@
+// ============================================================
+// Rule Name    : Shai-Hulud NPM Package Execution
+// Platform     : Sentinel / MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : InitialAccess
+// MITRE Tech   : T1195.002 - Supply Chain Compromise: Software Supply Chain
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects execution of known compromised @antv and
+//                related npm packages from the Shai-Hulud campaign.
+//                Covers 323 unique packages published 2026-05-19
+//                between 01:56-02:56 UTC.
+// Sources      : Socket Research (socket.dev)
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where InitiatingProcessFileName in~ ("node.exe", "npm.cmd", "npx.cmd")
+| where ProcessCommandLine has_any (
+    "@antv/g2", "@antv/g6", "@antv/x6", "@antv/l7",
+    "@antv/s2", "@antv/f2", "@antv/g", "@antv/g2plot",
+    "@antv/graphin", "@antv/data-set",
+    "echarts-for-react", "timeago.js", "size-sensor",
+    "canvas-nest.js", "jest-canvas-mock",
+    "@tanstack/react-router", "@tanstack/router-core",
+    "@mistralai/mistralai", "durabletask"
+)
+| project Timestamp, DeviceName, AccountName,
+          ProcessCommandLine, InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId

@@ -1,0 +1,27 @@
+// ============================================================
+// Rule Name    : Shai-Hulud C2 Network Exfiltration
+// Platform     : Sentinel / MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : Exfiltration
+// MITRE Tech   : T1041 - Exfiltration Over C2 Channel
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects outbound connections to known Shai-Hulud
+//                C2 exfiltration endpoints. Traffic is end-to-end
+//                encrypted over TCP/443 via Session P2P network.
+//                Note: Network-level detection may be limited due
+//                to encryption — combine with process-based rules.
+// Sources      : Socket Research, Endor Labs, Microsoft
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(1h)
+| where RemoteUrl has_any (
+    "filev2.getsession.org",
+    "t.m-kosche.com"
+)
+| project Timestamp, DeviceName, RemoteUrl, RemoteIP,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

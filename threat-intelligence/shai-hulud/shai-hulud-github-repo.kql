@@ -1,0 +1,35 @@
+// ============================================================
+// Rule Name    : Shai-Hulud GitHub Repository Creation via Stolen Token
+// Platform     : Sentinel / MDE
+// Severity     : Medium
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : Exfiltration
+// MITRE Tech   : T1537 - Transfer Data to Cloud Account
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects automated GitHub repository creation used
+//                as fallback exfiltration mechanism. Shai-Hulud
+//                creates repos under victim accounts with Dune-themed
+//                names and stores stolen data in results/ directory.
+//                Marker: "niaga og ew ereh :duluh-iahs" in README.
+//                Pattern: <dune-word>-<dune-word>-<digits>
+// Sources      : Socket Research, Endor Labs
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(1h)
+| where RemoteUrl has "api.github.com"
+| where RemoteUrl has_any (
+    "/user/repos",
+    "/repos/",
+    "/contents/results/"
+)
+| where InitiatingProcessFileName in~ (
+    "node.exe", "bun.exe", "python.exe",
+    "npm.cmd", "npx.cmd"
+)
+| project Timestamp, DeviceName, AccountName,
+          RemoteUrl, RemoteIP,
+          InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId
