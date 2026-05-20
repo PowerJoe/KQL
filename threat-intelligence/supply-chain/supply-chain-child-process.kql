@@ -1,0 +1,40 @@
+// ============================================================
+// Rule Name    : Supply Chain - Package Manager Spawning Suspicious Child Process
+// Platform     : Sentinel / MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : Execution
+// MITRE Tech   : T1059 - Command and Scripting Interpreter
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects package manager processes spawning unexpected
+//                child processes such as shells, network tools, and
+//                reconnaissance utilities. Legitimate package managers
+//                should not spawn cmd.exe, powershell.exe, or curl.exe
+//                outside of controlled build environments.
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where InitiatingProcessFileName in~ (
+    "node.exe", "npm.cmd", "npx.cmd", "bun.exe",
+    "python.exe", "pip.exe"
+)
+| where FileName in~ (
+    // Shell spawning
+    "cmd.exe", "powershell.exe", "pwsh.exe",
+    "bash.exe", "sh.exe", "wscript.exe",
+    "cscript.exe", "mshta.exe",
+    // Network tools
+    "curl.exe", "wget.exe",
+    // Credential tools
+    "net.exe", "netstat.exe",
+    // Recon
+    "whoami.exe", "ipconfig.exe", "systeminfo.exe"
+)
+| project Timestamp, DeviceName, AccountName,
+          FileName, ProcessCommandLine,
+          InitiatingProcessFileName,
+          InitiatingProcessCommandLine,
+          InitiatingProcessParentFileName, ReportId

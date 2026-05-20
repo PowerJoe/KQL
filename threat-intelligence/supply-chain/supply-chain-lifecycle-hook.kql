@@ -1,0 +1,42 @@
+// ============================================================
+// Rule Name    : Supply Chain - Suspicious Package Lifecycle Hook Execution
+// Platform     : Sentinel / MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : Execution
+// MITRE Tech   : T1059.007 - Command and Scripting Interpreter: JavaScript
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects execution of suspicious commands via npm
+//                lifecycle hooks (preinstall, postinstall, prepare).
+//                Supply chain malware commonly abuses these hooks to
+//                execute payloads during package installation.
+//                Shai-Hulud uses: "preinstall":"bun run index.js"
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where InitiatingProcessFileName in~ (
+    "node.exe", "npm.cmd", "npx.cmd", "bun.exe"
+)
+| where ProcessCommandLine has_any (
+    "preinstall",
+    "postinstall",
+    "prepare",
+    "prepack",
+    "install"
+)
+| where ProcessCommandLine has_any (
+    "bun run",
+    "node index.js",
+    "node ./index.js",
+    "sh -c",
+    "bash -c",
+    "powershell",
+    "cmd /c"
+)
+| project Timestamp, DeviceName, AccountName,
+          ProcessCommandLine, InitiatingProcessFileName,
+          InitiatingProcessCommandLine,
+          InitiatingProcessParentFileName, ReportId

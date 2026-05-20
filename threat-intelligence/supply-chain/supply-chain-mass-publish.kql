@@ -1,0 +1,35 @@
+// ============================================================
+// Rule Name    : Supply Chain - Suspicious Mass Package Republish Activity
+// Platform     : Sentinel / MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : Impact
+// MITRE Tech   : T1195.002 - Supply Chain Compromise: Software Supply Chain
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects mass package publishing activity from a single
+//                device within a short timeframe. Supply chain malware
+//                with worm-like capabilities validates stolen npm tokens,
+//                enumerates owned packages, injects payloads, and
+//                republishes with bumped version numbers.
+//                Shai-Hulud published 639 versions in ~60 minutes.
+//                Threshold: >3 publishes per 10-minute window.
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where InitiatingProcessFileName in~ ("node.exe", "npm.cmd", "bun.exe")
+| where ProcessCommandLine has_any (
+    "npm publish",
+    "npm version",
+    "bun publish"
+)
+| summarize
+    PublishCount = count(),
+    PackageList = make_set(ProcessCommandLine)
+    by DeviceName, AccountName, bin(Timestamp, 10m)
+| where PublishCount > 3
+| project Timestamp, DeviceName, AccountName,
+          PublishCount, PackageList
+| sort by PublishCount desc

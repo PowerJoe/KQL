@@ -1,0 +1,33 @@
+// ============================================================
+// Rule Name    : Supply Chain - Automated GitHub Repository Creation
+// Platform     : Sentinel / MDE
+// Severity     : Medium
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : Exfiltration
+// MITRE Tech   : T1537 - Transfer Data to Cloud Account
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects automated GitHub repository creation from
+//                package manager processes. Supply chain malware uses
+//                GitHub as fallback exfiltration when direct C2 is
+//                blocked. Stolen data is committed to repos under
+//                the victim's own GitHub account.
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(1h)
+| where RemoteUrl has "api.github.com"
+| where RemoteUrl has_any (
+    "/user/repos",
+    "/orgs/",
+    "/repos/"
+)
+| where InitiatingProcessFileName in~ (
+    "node.exe", "bun.exe", "python.exe",
+    "npm.cmd", "npx.cmd"
+)
+| project Timestamp, DeviceName, AccountName,
+          RemoteUrl, RemoteIP,
+          InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId

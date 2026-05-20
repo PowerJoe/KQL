@@ -1,0 +1,46 @@
+// ============================================================
+// Rule Name    : Supply Chain - Package Manager Outbound C2 Connection
+// Platform     : Sentinel / MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : Exfiltration
+// MITRE Tech   : T1041 - Exfiltration Over C2 Channel
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects package manager processes making outbound
+//                connections to unexpected destinations. Excludes
+//                known legitimate package registry endpoints.
+//                Tuning required — add your environment's legitimate
+//                internal endpoints to the exclusion list.
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(1h)
+| where InitiatingProcessFileName in~ (
+    "node.exe", "npm.cmd", "npx.cmd", "bun.exe",
+    "python.exe", "pip.exe", "pip3.exe",
+    "ruby.exe", "gem.cmd", "composer.phar"
+)
+| where RemotePort in (443, 80, 8080, 8443)
+| where not(RemoteUrl has_any (
+    "registry.npmjs.org",
+    "pypi.org",
+    "pythonhosted.org",
+    "files.pythonhosted.org",
+    "github.com",
+    "githubusercontent.com",
+    "nodejs.org",
+    "npmjs.com",
+    "yarnpkg.com",
+    "registry.yarnpkg.com",
+    "packagist.org",
+    "rubygems.org",
+    "azure.com",
+    "microsoft.com",
+    "cloudflare.com"
+))
+| project Timestamp, DeviceName, AccountName,
+          RemoteUrl, RemoteIP, RemotePort,
+          InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId

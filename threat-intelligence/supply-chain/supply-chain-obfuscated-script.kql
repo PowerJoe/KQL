@@ -1,0 +1,45 @@
+// ============================================================
+// Rule Name    : Supply Chain - Obfuscated Script Execution from Package Manager
+// Platform     : Sentinel / MDE
+// Severity     : Medium
+// Frequency    : Every 1h
+// Lookback     : 1h
+// MITRE Tactic : DefenseEvasion
+// MITRE Tech   : T1027 - Obfuscated Files or Information
+// Author       : PJ131
+// Last Updated : 2026-05-19
+// Description  : Detects obfuscation and encoding techniques used
+//                by supply chain malware when executed via package
+//                managers. High false positive potential — tuning
+//                required. Whitelist known legitimate processes in
+//                your environment before enabling automated alerting.
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where InitiatingProcessFileName in~ (
+    "node.exe", "npm.cmd", "npx.cmd", "bun.exe",
+    "python.exe", "pip.exe"
+)
+| where ProcessCommandLine has_any (
+    // Base64 encoding
+    "base64",
+    "atob(",
+    "btoa(",
+    "Buffer.from",
+    "fromCharCode",
+    // Obfuscation patterns
+    "eval(",
+    "Function(",
+    "globalThis.",
+    // Compression
+    "gzip",
+    "zlib",
+    // Crypto (suspicious when from package manager)
+    "createCipheriv",
+    "AES-256-GCM",
+    "RSA-OAEP"
+)
+| project Timestamp, DeviceName, AccountName,
+          ProcessCommandLine, InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId
