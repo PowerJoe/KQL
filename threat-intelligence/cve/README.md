@@ -16,6 +16,7 @@ Detection and hunting rules for specific CVEs, each in its own subdirectory.
 | CVE-2026-20230 | [Cisco CUCM WebDialer SSRF](cve-2026-20230-cucm-webdialer/) | SSRF → file write → root privilege escalation | 🔴 High |
 | CVE-2026-48778 | [Notepad++ Code Execution](cve-2026-48778-notepadpp/) | config.xml poisoning → ShellExecute hijack | 🔴 High |
 | CVE-2026-9082 | [Drupal JSON:API SQLi](cve-2026-9082-drupal-jsonapi-sqli/) | Error-based SQL injection via JSON:API filter key (PostgreSQL) | 🔴 Critical |
+| CVE-2026-43284 / CVE-2026-43500 / CVE-2026-46300 | [Kukurigu LPE](cve-2026-43284-kukurigu/) | Linux page-cache poisoning via xfrm-ESP/RxRPC/Fragnesia → root | 🔴 Critical |
 
 ## Structure
 
