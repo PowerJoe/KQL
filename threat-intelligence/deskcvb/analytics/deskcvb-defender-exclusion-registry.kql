@@ -1,0 +1,26 @@
+// ============================================================
+// Rule Name    : DesckVB RAT - Defender Exclusion Added via Registry
+// Platform     : Sentinel | MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Defense Evasion
+// MITRE Tech   : T1562.001 - Impair Defenses: Disable or Modify Tools
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects registry writes to Windows Defender exclusion
+//                paths. DesckVB RAT adds path exclusions for its
+//                NVIDEO-themed LocalApplicationData staging directory
+//                and process exclusions for its executable to prevent
+//                real-time scanning from triggering on the payload.
+// References   : https://www.huntress.com/blog/malspam-to-deskcvb-rat-delivery-chain-analysis
+// ============================================================
+
+DeviceRegistryEvents
+| where Timestamp > ago(24h)
+| where RegistryKey has @"SOFTWARE\Microsoft\Windows Defender\Exclusions"
+| where ActionType in ("RegistryValueSet", "RegistryKeyCreated")
+| project Timestamp, DeviceName, AccountName,
+          RegistryKey, RegistryValueName, RegistryValueData,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

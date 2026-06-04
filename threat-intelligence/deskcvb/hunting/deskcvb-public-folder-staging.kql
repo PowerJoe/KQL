@@ -1,0 +1,41 @@
+// ============================================================
+// Rule Name    : DesckVB RAT - Public Folder File Staging (Hunting)
+// Platform     : Sentinel | MDE (Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 7d
+// MITRE Tactic : Execution, Defense Evasion
+// MITRE Tech   : T1036.005 - Masquerading: Match Legitimate Name or Location
+//              : T1204.002 - User Execution: Malicious File
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects two or more script/staging files (.js, .ps1,
+//                .txt) written to C:\Users\Public\ by a non-standard
+//                process within the same hour. DesckVB RAT drops a
+//                JS loader and multiple PowerShell/staging files
+//                (ktncm.js, nlbzl.ps1, zkrbx.txt, gglhn.txt,
+//                shmvg_01.ps1) before execution. Summarizes by device
+//                and dropping process for easy triage.
+// References   : https://www.huntress.com/blog/malspam-to-deskcvb-rat-delivery-chain-analysis
+// ============================================================
+
+DeviceFileEvents
+| where Timestamp > ago(7d)
+| where FolderPath startswith @"C:\Users\Public\"
+| where ActionType == "FileCreated"
+| where FileName has_any (".js", ".ps1", ".txt", ".vbs")
+| where InitiatingProcessFileName !in~ (
+    "explorer.exe", "OneDrive.exe", "MicrosoftEdge.exe",
+    "WINWORD.EXE", "EXCEL.EXE", "OUTLOOK.EXE",
+    "Teams.exe", "slack.exe", "chrome.exe", "firefox.exe"
+)
+| summarize
+    FilesDropped   = count(),
+    FileNames      = make_set(FileName),
+    DroppingProcess = make_set(InitiatingProcessFileName),
+    FirstSeen      = min(Timestamp),
+    LastSeen       = max(Timestamp)
+    by DeviceName, AccountName, bin(Timestamp, 1h)
+| where FilesDropped >= 2
+| project FirstSeen, LastSeen, DeviceName, AccountName,
+          FilesDropped, FileNames, DroppingProcess
+| order by FilesDropped desc

@@ -18,6 +18,7 @@ kql-detection-rules/
 ├── threat-intelligence/
 │   ├── supply-chain/       # Supply chain campaign rules
 │   │   └── shai-hulud/     # Shai-Hulud campaign IOCs & rules
+│   ├── deskcvb/            # DesckVB RAT malspam campaign rules
 │   └── cve/
 │       └── bluehammer/     # BlueHammer (CVE-2026-33825) LPE rules
 └── README.md

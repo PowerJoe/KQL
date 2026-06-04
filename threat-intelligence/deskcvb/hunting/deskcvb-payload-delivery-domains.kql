@@ -1,0 +1,52 @@
+// ============================================================
+// Rule Name    : DesckVB RAT - Payload Delivery Domain Hits (Hunting)
+// Platform     : Sentinel | MDE (Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 7d
+// MITRE Tactic : Initial Access, Command and Control
+// MITRE Tech   : T1566.002 - Phishing: Spearphishing Link
+//              : T1071.001 - Application Layer Protocol: Web Protocols
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Hunts for connections to the known DesckVB RAT payload
+//                delivery and staging infrastructure. Includes the ZIP
+//                delivery host, staging file servers, and geolocation
+//                check (ipapi.co) made by the loader before detonation.
+//                A hit on ipapi.co from a script interpreter is a
+//                behavioral indicator even without domain IOC matches.
+// IOCs         : pengajian.muliastudy.com, meusitehostgator.com.br,
+//                catalogo.castrouria.com, ipapi.co (from script engines)
+// References   : https://www.huntress.com/blog/malspam-to-deskcvb-rat-delivery-chain-analysis
+// ============================================================
+
+let ScriptEngines = dynamic([
+    "wscript.exe", "cscript.exe", "powershell.exe",
+    "pwsh.exe", "mshta.exe", "cmd.exe"
+]);
+let DeliveryDomains = dynamic([
+    "muliastudy.com",
+    "meusitehostgator.com.br",
+    "castrouria.com",
+    "startthewave.org",
+    "optimizationprime.com"
+]);
+// Known delivery infrastructure hits
+DeviceNetworkEvents
+| where Timestamp > ago(7d)
+| where RemoteUrl has_any (DeliveryDomains)
+| extend DetectionType = "Delivery Infrastructure"
+| project Timestamp, DeviceName, AccountName, DetectionType,
+          RemoteUrl, RemoteIP, InitiatingProcessFileName,
+          InitiatingProcessCommandLine, ReportId
+| union (
+    // Geolocation check from script engines — pre-detonation behavior
+    DeviceNetworkEvents
+    | where Timestamp > ago(7d)
+    | where RemoteUrl has "ipapi.co/json"
+    | where InitiatingProcessFileName in~ (ScriptEngines)
+    | extend DetectionType = "Geolocation Check from Script Engine"
+    | project Timestamp, DeviceName, AccountName, DetectionType,
+              RemoteUrl, RemoteIP, InitiatingProcessFileName,
+              InitiatingProcessCommandLine, ReportId
+)
+| sort by Timestamp desc

@@ -1,0 +1,45 @@
+// ============================================================
+// Rule Name    : DesckVB RAT - Full Chain TTP Correlation (Hunting)
+// Platform     : Sentinel | MDE (Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 7d
+// MITRE Tactic : Execution, Defense Evasion, Persistence
+// MITRE Tech   : T1204.002, T1218.004, T1127.001, T1547.001, T1053.005
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Correlates three core DesckVB RAT TTPs on the same
+//                device: (1) wscript.exe executing a JS file from
+//                C:\Users\Public\, (2) installutil.exe or MSBuild.exe
+//                spawned by powershell.exe, and (3) NVIDEO-themed
+//                Run key written to HKCU. Devices matching two or
+//                more signals within the lookback window are
+//                high-confidence compromises.
+// References   : https://www.huntress.com/blog/malspam-to-deskcvb-rat-delivery-chain-analysis
+// ============================================================
+
+let lookback = 7d;
+let wscript_js = DeviceProcessEvents
+| where Timestamp > ago(lookback)
+| where FileName =~ "wscript.exe"
+| where ProcessCommandLine has @"C:\Users\Public\"
+| where ProcessCommandLine has ".js"
+| distinct DeviceId, DeviceName;
+let proxy_exec = DeviceProcessEvents
+| where Timestamp > ago(lookback)
+| where FileName in~ ("installutil.exe", "MSBuild.exe")
+| where InitiatingProcessFileName =~ "powershell.exe"
+| distinct DeviceId;
+let nvideo_persist = DeviceRegistryEvents
+| where Timestamp > ago(lookback)
+| where RegistryKey has @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+| where RegistryValueName has "NVIDEO"
+| distinct DeviceId;
+wscript_js
+| extend HasProxyExec    = DeviceId in (proxy_exec)
+| extend HasNvideoPersist = DeviceId in (nvideo_persist)
+| extend MatchCount = 1 + toint(HasProxyExec) + toint(HasNvideoPersist)
+| where MatchCount >= 2
+| project DeviceName, DeviceId,
+          WscriptJS = true, HasProxyExec, HasNvideoPersist, MatchCount
+| extend Verdict = "DesckVB RAT - Multiple TTPs Detected"
+| order by MatchCount desc

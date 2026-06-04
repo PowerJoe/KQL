@@ -1,0 +1,28 @@
+// ============================================================
+// Rule Name    : DesckVB RAT - WScript Executing JS from Public Folder
+// Platform     : Sentinel | MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Execution
+// MITRE Tech   : T1204.002 - User Execution: Malicious File
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects wscript.exe executing JavaScript files from
+//                C:\Users\Public\, a staging technique in the DesckVB
+//                RAT delivery chain. The malspam HTML attachment
+//                delivers a ZIP containing a JS loader which is
+//                relocated from Temp/Downloads to the Public folder
+//                before execution to avoid cleanup detection.
+// References   : https://www.huntress.com/blog/malspam-to-deskcvb-rat-delivery-chain-analysis
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(24h)
+| where FileName =~ "wscript.exe"
+| where ProcessCommandLine has @"C:\Users\Public\"
+| where ProcessCommandLine has_any (".js", ".vbs")
+| project Timestamp, DeviceName, AccountName,
+          ProcessCommandLine, InitiatingProcessFileName,
+          InitiatingProcessCommandLine, InitiatingProcessAccountName,
+          InitiatingProcessIntegrityLevel, ReportId

@@ -1,0 +1,35 @@
+// ============================================================
+// Rule Name    : DesckVB RAT - Scheduled Task Created via XML from Temp
+// Platform     : Sentinel | MDE
+// Severity     : Medium
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Persistence, Privilege Escalation
+// MITRE Tech   : T1053.005 - Scheduled Task/Job: Scheduled Task
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects schtasks.exe creating a scheduled task using
+//                an XML definition file written to the Temp directory.
+//                DesckVB RAT creates two XML-based tasks: a short-lived
+//                launcher (5s trigger, 20s expiry) and a persistent
+//                repeating task (PT8-11M interval, HighestAvailable
+//                or LeastPrivilege). The XML file is deleted immediately
+//                after task registration to reduce forensic artifacts.
+// References   : https://www.huntress.com/blog/malspam-to-deskcvb-rat-delivery-chain-analysis
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(24h)
+| where FileName =~ "schtasks.exe"
+| where ProcessCommandLine has "/Create"
+| where ProcessCommandLine has "/XML"
+| where ProcessCommandLine has_any (
+    "\\Temp\\",
+    "\\AppData\\Local\\Temp\\",
+    "%TEMP%",
+    "%TMP%"
+)
+| project Timestamp, DeviceName, AccountName,
+          ProcessCommandLine, InitiatingProcessFileName,
+          InitiatingProcessCommandLine, InitiatingProcessAccountName,
+          ReportId

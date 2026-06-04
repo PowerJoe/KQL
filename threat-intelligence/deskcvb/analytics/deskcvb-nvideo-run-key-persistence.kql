@@ -1,0 +1,28 @@
+// ============================================================
+// Rule Name    : DesckVB RAT - NVIDEO Run Key Persistence
+// Platform     : Sentinel | MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Persistence
+// MITRE Tech   : T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects DesckVB RAT establishing persistence via
+//                HKCU Run or RunOnce keys named
+//                "Update Drivers NVIDEO_<random>". The NVIDIA-themed
+//                name is intended to blend in with legitimate GPU
+//                driver update entries. A matching entry in RunOnce
+//                alongside Run is a strong indicator of DesckVB RAT.
+// References   : https://www.huntress.com/blog/malspam-to-deskcvb-rat-delivery-chain-analysis
+// ============================================================
+
+DeviceRegistryEvents
+| where Timestamp > ago(24h)
+| where RegistryKey has @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+| where RegistryValueName has_any ("NVIDEO", "Update Drivers")
+| where ActionType in ("RegistryValueSet", "RegistryKeyCreated")
+| project Timestamp, DeviceName, AccountName,
+          RegistryKey, RegistryValueName, RegistryValueData,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

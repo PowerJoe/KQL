@@ -1,3 +1,15 @@
+### 🐀 DesckVB RAT
+Malspam campaign delivering a .NET RAT via HTML redirect → ZIP → JS loader → PowerShell dropper → process hollowing.
+
+| Rule | Platform | Severity | MITRE |
+|---|---|---|---|
+| DesckVB C2 DDNS Communication | Sentinel / MDE | 🔴 Critical | T1095 |
+| DesckVB NVIDEO Run Key Persistence | Sentinel / MDE | 🔴 High | T1547.001 |
+| DesckVB Defender Exclusion Registry | Sentinel / MDE | 🔴 High | T1562.001 |
+| DesckVB InstallUtil/MSBuild Proxy Execution | Sentinel / MDE | 🔴 High | T1218.004, T1127.001 |
+| DesckVB WScript JS Execution from Public | Sentinel / MDE | 🔴 High | T1204.002 |
+| DesckVB Scheduled Task via XML | Sentinel / MDE | 🟠 Medium | T1053.005 |
+
 ### 🏭 Supply Chain
 Detection rules targeting software supply chain attacks across npm, PyPI, and other package ecosystems.
 

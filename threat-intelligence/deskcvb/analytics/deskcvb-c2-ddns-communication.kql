@@ -1,0 +1,30 @@
+// ============================================================
+// Rule Name    : DesckVB RAT - C2 DDNS Communication
+// Platform     : Sentinel | MDE
+// Severity     : Critical
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Command and Control
+// MITRE Tech   : T1095 - Non-Application Layer Protocol
+//              : T1568.003 - Dynamic Resolution: DNS Calculation
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects outbound connections to known DesckVB RAT C2
+//                DDNS domains. The RAT communicates over raw TCP using
+//                AES encryption (PBKDF2-derived key from "P@55w0rd!")
+//                and pins TLS certificates. Any connection to these
+//                hosts is a confirmed C2 channel.
+// IOCs         : xtadts.ddns.net, afxwd.ddns.net
+// References   : https://www.huntress.com/blog/malspam-to-deskcvb-rat-delivery-chain-analysis
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(24h)
+| where RemoteUrl has_any (
+    "xtadts.ddns.net",
+    "afxwd.ddns.net"
+)
+| project Timestamp, DeviceName, AccountName,
+          RemoteUrl, RemoteIP, RemotePort, Protocol,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

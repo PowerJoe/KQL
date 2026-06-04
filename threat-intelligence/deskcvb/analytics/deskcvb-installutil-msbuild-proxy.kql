@@ -1,0 +1,28 @@
+// ============================================================
+// Rule Name    : DesckVB RAT - InstallUtil/MSBuild Proxy Execution
+// Platform     : Sentinel | MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Defense Evasion
+// MITRE Tech   : T1218.004 - System Binary Proxy Execution: InstallUtil
+//              : T1127.001 - Trusted Developer Utilities Proxy Execution: MSBuild
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects installutil.exe or MSBuild.exe spawned by
+//                powershell.exe. DesckVB RAT hollows into these signed
+//                .NET binaries to execute its payload while evading
+//                process-based detections. The target binary is
+//                operator-configurable (InstallUtil is default).
+// References   : https://www.huntress.com/blog/malspam-to-deskcvb-rat-delivery-chain-analysis
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(24h)
+| where FileName in~ ("installutil.exe", "MSBuild.exe")
+| where InitiatingProcessFileName =~ "powershell.exe"
+| project Timestamp, DeviceName, AccountName,
+          FileName, ProcessCommandLine,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, InitiatingProcessIntegrityLevel,
+          ReportId
