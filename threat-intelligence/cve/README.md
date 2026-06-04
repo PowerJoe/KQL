@@ -11,6 +11,7 @@ Detection and hunting rules for specific CVEs, each in its own subdirectory.
 | CVE-2026-31431 | [Copyfail](cve-2026-31431-copyfail/) | Linux LPE — splice()+AF_ALG SUID overwrite | 🔴 Critical |
 | CVE-2026-21858 + CVE-2025-68613 | [n8n Full Chain](cve-2026-21858-n8n-fullchain/) | LFI → Token Forge → Sandbox Bypass → RCE | 🔴 Critical |
 | CVE-2026-41089 | [Netlogon CLDAP](cve-2026-41089-netlogon-cldap/) | Pre-auth DC stack overflow via CLDAP — DoS/potential RCE | 🔴 Critical |
+| CVE-2026-34486 | [Tomcat Tribes RCE](cve-2026-34486-tomcat-tribes/) | EncryptInterceptor fail-open → Java deserialization RCE | 🔴 Critical |
 
 ## Structure
 
