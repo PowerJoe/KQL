@@ -16,6 +16,7 @@ kql-detection-rules/
 │   ├── apt36-vibeware/     # APT36 VibeWare DeskRAT campaign (Linux)
 │   ├── deskcvb/            # DesckVB RAT malspam campaign
 │   └── cve/
+│       ├── cve-2026-21250-httpsys-lpe/        # HTTP.sys LPE (Windows 11 24H2/25H2)
 │       ├── cve-2026-43284-kukurigu/           # Kukurigu Linux LPE (xfrm/RxRPC/ESP page-cache)
 │       ├── cve-2026-9082-drupal-jsonapi-sqli/ # Drupal JSON:API error-based SQLi
 │       ├── cve-2026-48778-notepadpp/      # Notepad++ config.xml ShellExecute hijack
