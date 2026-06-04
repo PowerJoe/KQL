@@ -1,12 +1,20 @@
-### 🏭 Supply Chain
-Detection rules targeting software supply chain attacks across npm, PyPI, and other package ecosystems.
+# Shai-Hulud Campaign
 
-| Rule | Platform | Severity | MITRE |
+Detection and hunting rules for the **Shai-Hulud** software supply chain campaign, targeting npm, PyPI, and other package ecosystems.
+
+## Rules
+
+| Rule | Type | Severity | MITRE |
 |---|---|---|---|
-| Shai-Hulud C2 Exfiltration | Sentinel / MDE | 🔴 High | T1041 |
-| Shai-Hulud NPM Package Execution | Sentinel / MDE | 🔴 High | T1195.002 |
-| Shai-Hulud CI/CD Secret Harvesting | Sentinel / MDE | 🔴 High | T1552.001 |
-| Shai-Hulud GitHub Repo Creation | Sentinel / MDE | 🟠 Medium | T1537 |
-| Shai-Hulud VS Code/Claude Code Backdoor | Sentinel / MDE | 🔴 High | T1176 |
-| Shai-Hulud Obfuscated index.js Drop | Sentinel / MDE | 🟠 Medium | T1027 |
-| Shai-Hulud GitHub API Abuse | Sentinel / MDE | 🟠 Medium | T1537 |
+| `shai-hulud-c2-exfiltration.kql` | Analytics | 🔴 High | T1041 |
+| `shai-hulud-npm-execution.kql` | Analytics | 🔴 High | T1195.002 |
+| `shai-hulud-cicd-harvesting.kql` | Analytics | 🔴 High | T1552.001 |
+| `shai-hulud-github-repo.kql` | Analytics | 🟠 Medium | T1537 |
+| `shai-hulud-vscode-backdoor.kql` | Analytics | 🔴 High | T1176 |
+| `shai-hulud-index-js-drop.kql` | Analytics | 🟠 Medium | T1027 |
+| `shai-hulud-github-api.kql` | Analytics | 🟠 Medium | T1537 |
+| `shai-hulud-antv-packages.kql` | Hunting | 🔴 High | T1195.002 |
+| `shai-hulud-non-antv-packages.kql` | Hunting | 🔴 High | T1195.002 |
+| `shai-hulud-pypi-packages.kql` | Hunting | 🔴 High | T1195.002 |
+| `shai-hulud-c2-indicators.kql` | Hunting | 🔴 High | T1041, T1552 |
+| `shai-hulud-github-repo-creation.kql` | Hunting | 🟠 Medium | T1537 |

@@ -8,20 +8,13 @@
 
 ```
 kql-detection-rules/
-├── sentinel/
-│   ├── analytics/          # Scheduled Analytics Rules
-│   ├── hunting/            # Hunting Queries
-│   └── workbooks/          # Workbook queries
-├── defender/
-│   ├── custom-detections/  # MDE Custom Detection Rules
-│   └── hunting/            # Advanced Hunting Queries
 ├── threat-intelligence/
-│   ├── supply-chain/       # Supply chain campaign rules
-│   │   └── shai-hulud/     # Shai-Hulud campaign IOCs & rules
+│   ├── shai-hulud/         # Shai-Hulud supply chain campaign
+│   ├── supply-chain/       # Generic supply chain rules
 │   ├── apt36-vibeware/     # APT36 VibeWare DeskRAT campaign (Linux)
-│   ├── deskcvb/            # DesckVB RAT malspam campaign rules
+│   ├── deskcvb/            # DesckVB RAT malspam campaign
 │   └── cve/
-│       ├── bluehammer/     # BlueHammer (CVE-2026-33825) LPE rules
+│       ├── bluehammer/     # BlueHammer (CVE-2026-33825) LPE
 │       └── marimo-rce/     # Marimo pre-auth RCE (CVE-2026-39987)
 └── README.md
 ```

@@ -22,18 +22,23 @@ Malspam campaign delivering a .NET RAT via HTML redirect → ZIP → JS loader �
 | DesckVB WScript JS Execution from Public | Sentinel / MDE | 🔴 High | T1204.002 |
 | DesckVB Scheduled Task via XML | Sentinel / MDE | 🟠 Medium | T1053.005 |
 
-### 🏭 Supply Chain
-Detection rules targeting software supply chain attacks across npm, PyPI, and other package ecosystems.
+### 🏭 Shai-Hulud Supply Chain Campaign
+Detection rules targeting the Shai-Hulud software supply chain campaign across npm and PyPI.
 
-| Rule | Platform | Severity | MITRE |
-|---|---|---|---|
-| Shai-Hulud C2 Exfiltration | Sentinel / MDE | 🔴 High | T1041 |
-| Shai-Hulud NPM Package Execution | Sentinel / MDE | 🔴 High | T1195.002 |
-| Shai-Hulud CI/CD Secret Harvesting | Sentinel / MDE | 🔴 High | T1552.001 |
-| Shai-Hulud GitHub Repo Creation | Sentinel / MDE | 🟠 Medium | T1537 |
-| Shai-Hulud VS Code/Claude Code Backdoor | Sentinel / MDE | 🔴 High | T1176 |
-| Shai-Hulud Obfuscated index.js Drop | Sentinel / MDE | 🟠 Medium | T1027 |
-| Shai-Hulud GitHub API Abuse | Sentinel / MDE | 🟠 Medium | T1537 |
+| Rule | Type | Platform | Severity | MITRE |
+|---|---|---|---|---|
+| Shai-Hulud C2 Exfiltration | Analytics | Sentinel / MDE | 🔴 High | T1041 |
+| Shai-Hulud NPM Package Execution | Analytics | Sentinel / MDE | 🔴 High | T1195.002 |
+| Shai-Hulud CI/CD Secret Harvesting | Analytics | Sentinel / MDE | 🔴 High | T1552.001 |
+| Shai-Hulud GitHub Repo Creation | Analytics | Sentinel / MDE | 🟠 Medium | T1537 |
+| Shai-Hulud VS Code Backdoor | Analytics | Sentinel / MDE | 🔴 High | T1176 |
+| Shai-Hulud Obfuscated index.js Drop | Analytics | Sentinel / MDE | 🟠 Medium | T1027 |
+| Shai-Hulud GitHub API Abuse | Analytics | Sentinel / MDE | 🟠 Medium | T1537 |
+| Shai-Hulud @antv Package Execution | Hunting | Sentinel / MDE | 🔴 High | T1195.002 |
+| Shai-Hulud Non-@antv Package Execution | Hunting | Sentinel / MDE | 🔴 High | T1195.002 |
+| Shai-Hulud Compromised PyPI Packages | Hunting | Sentinel / MDE | 🔴 High | T1195.002 |
+| Shai-Hulud C2 and Campaign Indicators | Hunting | Sentinel / MDE | 🔴 High | T1041, T1552 |
+| Shai-Hulud GitHub Repository Creation | Hunting | Sentinel / MDE | 🟠 Medium | T1537 |
 
 ### 🔗 Generic Supply Chain Coverage
 Broad detection rules applicable to any supply chain attack, not campaign-specific.
