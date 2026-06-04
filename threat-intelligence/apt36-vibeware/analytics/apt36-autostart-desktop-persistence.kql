@@ -1,0 +1,27 @@
+// ============================================================
+// Rule Name    : APT36 VibeWare - Autostart Desktop File Persistence
+// Platform     : Sentinel | MDE (Linux)
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Persistence
+// MITRE Tech   : T1547.013 - Boot or Logon Autostart Execution: XDG Autostart Entries
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects creation of a .desktop file in the XDG
+//                autostart directory (~/.config/autostart/), the
+//                primary persistence mechanism used by APT36 VibeWare
+//                (DeskRAT). The entry launches the system-backup binary
+//                with the --hidden flag at every login session.
+// References   : https://medium.com/@tarunrd77/pakistans-apt36-vibeware-targets-indian-military-infrastructure-75a853437c03
+// ============================================================
+
+DeviceFileEvents
+| where Timestamp > ago(24h)
+| where FolderPath has ".config/autostart"
+| where FileName endswith ".desktop"
+| where ActionType in ("FileCreated", "FileModified")
+| project Timestamp, DeviceName, AccountName,
+          FileName, FolderPath,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

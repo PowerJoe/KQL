@@ -1,0 +1,42 @@
+// ============================================================
+// Rule Name    : APT36 VibeWare - Payload Delivery Domain Hits (Hunting)
+// Platform     : Sentinel | MDE (Linux, Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 7d
+// MITRE Tactic : Initial Access, Command and Control
+// MITRE Tech   : T1566.001 - Phishing: Spearphishing Attachment
+//              : T1105 - Ingress Tool Transfer
+//              : T1008 - Fallback Channels
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Hunts for connections to the known APT36 VibeWare
+//                delivery and C2 infrastructure. Includes the staged
+//                payload delivery server (bossmaya.xyz), the DeskRAT
+//                C2 WebSocket endpoint (chuchuchacha.xyz:8080), and
+//                the hardcoded IP fallback (85.137.249.243).
+//                Also surfaces IP recon service queries from script
+//                engines as a pre-C2 behavioral indicator.
+// IOCs         : bossmaya.xyz, chuchuchacha.xyz, 85.137.249.243
+// References   : https://medium.com/@tarunrd77/pakistans-apt36-vibeware-targets-indian-military-infrastructure-75a853437c03
+// ============================================================
+
+let DeliveryDomains = dynamic([
+    "bossmaya.xyz",
+    "chuchuchacha.xyz"
+]);
+let FallbackIP = "85.137.249.243";
+DeviceNetworkEvents
+| where Timestamp > ago(7d)
+| where RemoteUrl has_any (DeliveryDomains)
+    or RemoteIP == FallbackIP
+| extend DetectionType = case(
+    RemoteUrl has "bossmaya.xyz",      "Payload Delivery",
+    RemoteUrl has "chuchuchacha.xyz",  "C2 WebSocket",
+    RemoteIP == FallbackIP,            "C2 IP Fallback",
+    "Unknown"
+)
+| project Timestamp, DeviceName, AccountName, DetectionType,
+          RemoteUrl, RemoteIP, RemotePort,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          ReportId
+| sort by Timestamp desc

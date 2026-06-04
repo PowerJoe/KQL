@@ -1,0 +1,41 @@
+// ============================================================
+// Rule Name    : APT36 VibeWare - IP Reconnaissance from Script Engine
+// Platform     : Sentinel | MDE (Linux)
+// Severity     : Medium
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Discovery
+// MITRE Tech   : T1016 - System Network Configuration Discovery
+//              : T1033 - System Owner/User Discovery
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects curl or wget querying known external IP
+//                lookup services from a shell or script interpreter.
+//                APT36 VibeWare's DeskRAT performs external IP
+//                enumeration via api.ipify.org, checkip.amazonaws.com,
+//                and icanhazip.com as part of its initial beacon
+//                (sendClientInfo) to geolocate the victim before
+//                reporting to C2.
+// References   : https://medium.com/@tarunrd77/pakistans-apt36-vibeware-targets-indian-military-infrastructure-75a853437c03
+// ============================================================
+
+let ScriptEngines = dynamic([
+    "bash", "sh", "dash", "python3", "python",
+    "perl", "ruby", "node"
+]);
+let IpLookupServices = dynamic([
+    "api.ipify.org",
+    "checkip.amazonaws.com",
+    "icanhazip.com",
+    "ifconfig.me",
+    "ipinfo.io"
+]);
+DeviceNetworkEvents
+| where Timestamp > ago(24h)
+| where RemoteUrl has_any (IpLookupServices)
+| where InitiatingProcessFileName in~ (ScriptEngines)
+    or InitiatingProcessFileName in~ ("curl", "wget")
+| project Timestamp, DeviceName, AccountName,
+          RemoteUrl, RemoteIP,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

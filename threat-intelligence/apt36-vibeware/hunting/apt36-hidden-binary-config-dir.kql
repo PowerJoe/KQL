@@ -1,0 +1,42 @@
+// ============================================================
+// Rule Name    : APT36 VibeWare - Hidden Binary Execution from .config (Hunting)
+// Platform     : Sentinel | MDE (Linux, Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 7d
+// MITRE Tactic : Defense Evasion, Execution
+// MITRE Tech   : T1564.001 - Hide Artifacts: Hidden Files and Directories
+//              : T1106 - Native API
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Hunts for ELF binaries executing from user .config
+//                subdirectories with a --hidden argument, consistent
+//                with the APT36 VibeWare DeskRAT deployment path
+//                (~/.config/system-backup/system-backup --hidden).
+//                Legitimate software rarely executes binaries from
+//                ~/.config with stealth flags.
+// References   : https://medium.com/@tarunrd77/pakistans-apt36-vibeware-targets-indian-military-infrastructure-75a853437c03
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(7d)
+| where FolderPath has ".config"
+| where ProcessCommandLine has "--hidden"
+| project Timestamp, DeviceName, AccountName,
+          FileName, FolderPath, ProcessCommandLine,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId
+| union (
+    // Also catch writes of new binaries into .config subdirs
+    DeviceFileEvents
+    | where Timestamp > ago(7d)
+    | where FolderPath has ".config"
+    | where ActionType == "FileCreated"
+    | where FileName !has "."  // Likely an ELF (no extension)
+        or FileName endswith ".sh"
+    | where FolderPath !has "autostart"  // Autostart covered by separate rule
+    | project Timestamp, DeviceName, AccountName,
+              FileName, FolderPath,
+              InitiatingProcessFileName, InitiatingProcessCommandLine,
+              InitiatingProcessAccountName, ReportId
+)
+| sort by Timestamp desc

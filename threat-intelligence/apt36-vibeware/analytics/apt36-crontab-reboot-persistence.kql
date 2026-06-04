@@ -1,0 +1,37 @@
+// ============================================================
+// Rule Name    : APT36 VibeWare - Crontab @reboot Persistence
+// Platform     : Sentinel | MDE (Linux)
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Persistence
+// MITRE Tech   : T1053.003 - Scheduled Task/Job: Cron
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects crontab invocations or writes to cron spool
+//                files containing @reboot entries, used by APT36
+//                VibeWare to relaunch the DeskRAT binary on system
+//                restart. The entry redirects all output to /dev/null
+//                to suppress syslog artifacts.
+//                Pattern: @reboot <path> --hidden > /dev/null 2>&1
+// References   : https://medium.com/@tarunrd77/pakistans-apt36-vibeware-targets-indian-military-infrastructure-75a853437c03
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(24h)
+| where FileName =~ "crontab"
+| where ProcessCommandLine has_any ("-e", "-l", "@reboot")
+| project Timestamp, DeviceName, AccountName,
+          ProcessCommandLine, InitiatingProcessFileName,
+          InitiatingProcessCommandLine, InitiatingProcessAccountName,
+          ReportId
+| union (
+    DeviceFileEvents
+    | where Timestamp > ago(24h)
+    | where FolderPath has_any ("/var/spool/cron", "/etc/cron")
+    | where ActionType in ("FileCreated", "FileModified")
+    | project Timestamp, DeviceName, AccountName,
+              FileName, FolderPath,
+              InitiatingProcessFileName, InitiatingProcessCommandLine,
+              InitiatingProcessAccountName, ReportId
+)

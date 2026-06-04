@@ -1,0 +1,28 @@
+// ============================================================
+// Rule Name    : APT36 VibeWare - .bashrc Startup Script Injection
+// Platform     : Sentinel | MDE (Linux)
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Persistence
+// MITRE Tech   : T1546.004 - Event Triggered Execution: Unix Shell Configuration Modification
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects modifications to .bashrc that source an
+//                external startup script, the third persistence
+//                mechanism used by APT36 VibeWare. The RAT appends
+//                a source directive pointing to
+//                ~/.config/system-backup/startup.sh, ensuring execution
+//                in every interactive bash session.
+// References   : https://medium.com/@tarunrd77/pakistans-apt36-vibeware-targets-indian-military-infrastructure-75a853437c03
+// ============================================================
+
+DeviceFileEvents
+| where Timestamp > ago(24h)
+| where FileName =~ ".bashrc"
+    or (FileName =~ "startup.sh" and FolderPath has ".config")
+| where ActionType in ("FileCreated", "FileModified")
+| project Timestamp, DeviceName, AccountName,
+          FileName, FolderPath,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

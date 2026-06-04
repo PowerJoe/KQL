@@ -1,3 +1,15 @@
+### 🇵🇰 APT36 VibeWare (DeskRAT)
+Pakistan-linked APT36 campaign targeting Indian military on Linux via weaponized .desktop files and a Golang RAT.
+
+| Rule | Platform | Severity | MITRE |
+|---|---|---|---|
+| APT36 C2 WebSocket Connection | MDE (Linux) | 🔴 Critical | T1071.001, T1571 |
+| APT36 XDG Autostart Persistence | MDE (Linux) | 🔴 High | T1547.013 |
+| APT36 Crontab @reboot Persistence | MDE (Linux) | 🔴 High | T1053.003 |
+| APT36 .bashrc Startup Injection | MDE (Linux) | 🔴 High | T1546.004 |
+| APT36 Curl Decode Pipeline | MDE (Linux) | 🔴 High | T1059.004, T1105 |
+| APT36 IP Recon from Script Engine | MDE (Linux) | 🟠 Medium | T1016 |
+
 ### 🐀 DesckVB RAT
 Malspam campaign delivering a .NET RAT via HTML redirect → ZIP → JS loader → PowerShell dropper → process hollowing.
 

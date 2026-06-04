@@ -1,0 +1,32 @@
+// ============================================================
+// Rule Name    : APT36 VibeWare - C2 WebSocket Connection
+// Platform     : Sentinel | MDE (Linux)
+// Severity     : Critical
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Command and Control
+// MITRE Tech   : T1071.001 - Application Layer Protocol: Web Protocols
+//              : T1571 - Non-Standard Port
+//              : T1573 - Encrypted Channel
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects outbound TCP connections to known APT36
+//                VibeWare (DeskRAT) C2 infrastructure. The RAT
+//                communicates via cleartext WebSocket on port 8080
+//                (ws://chuchuchacha.xyz:8080/ws) with ChaCha20
+//                application-layer encryption. The hardcoded IP
+//                fallback (85.137.249.243) is used if DNS fails.
+//                Any hit on these indicators is a confirmed C2 channel.
+// IOCs         : chuchuchacha.xyz, 85.137.249.243, port 8080
+// References   : https://medium.com/@tarunrd77/pakistans-apt36-vibeware-targets-indian-military-infrastructure-75a853437c03
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(24h)
+| where RemoteUrl has "chuchuchacha.xyz"
+    or RemoteIP == "85.137.249.243"
+    or (RemotePort == 8080 and RemoteUrl has_any ("chuchuchacha", "bossmaya"))
+| project Timestamp, DeviceName, AccountName,
+          RemoteUrl, RemoteIP, RemotePort, Protocol,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

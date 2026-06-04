@@ -1,0 +1,44 @@
+// ============================================================
+// Rule Name    : APT36 VibeWare - Full Chain TTP Correlation (Hunting)
+// Platform     : Sentinel | MDE (Linux, Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 7d
+// MITRE Tactic : Execution, Persistence, Command and Control
+// MITRE Tech   : T1059.004, T1547.013, T1053.003, T1071.001
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Correlates three core APT36 VibeWare TTPs on the same
+//                Linux device: (1) bash executing a curl decode pipeline,
+//                (2) a .desktop file created in ~/.config/autostart/,
+//                and (3) crontab invocation or cron spool modification.
+//                Devices matching two or more signals within 7 days are
+//                high-confidence compromises. Run daily.
+// References   : https://medium.com/@tarunrd77/pakistans-apt36-vibeware-targets-indian-military-infrastructure-75a853437c03
+// ============================================================
+
+let lookback = 7d;
+let curl_pipeline = DeviceProcessEvents
+| where Timestamp > ago(lookback)
+| where FileName in~ ("bash", "sh", "curl")
+| where ProcessCommandLine has "curl"
+| where ProcessCommandLine has_any ("base64 -d", "bzip2 -d", "bossmaya", "download.php")
+| distinct DeviceId, DeviceName;
+let autostart_drop = DeviceFileEvents
+| where Timestamp > ago(lookback)
+| where FolderPath has ".config/autostart"
+| where FileName endswith ".desktop"
+| where ActionType in ("FileCreated", "FileModified")
+| distinct DeviceId;
+let cron_activity = DeviceProcessEvents
+| where Timestamp > ago(lookback)
+| where FileName =~ "crontab"
+| distinct DeviceId;
+curl_pipeline
+| extend HasAutostart = DeviceId in (autostart_drop)
+| extend HasCron      = DeviceId in (cron_activity)
+| extend MatchCount   = 1 + toint(HasAutostart) + toint(HasCron)
+| where MatchCount >= 2
+| project DeviceName, DeviceId,
+          CurlPipeline = true, HasAutostart, HasCron, MatchCount
+| extend Verdict = "APT36 VibeWare - Multiple TTPs Detected"
+| order by MatchCount desc
