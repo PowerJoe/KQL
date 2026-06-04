@@ -52,6 +52,10 @@ vscode-github-token-theft/
 - **Immediate:** Clear github.dev browser local storage to force token re-authentication.
 - **Policy:** Restrict workspace trust — do not open repositories from unknown sources in VSCode Web.
 
+## Tuning note
+
+> **`vscode-token-theft-external-exfil.kql` requires environment-specific tuning.** In developer-heavy environments, VSCode extensions legitimately call third-party APIs (npm registries, telemetry endpoints, AI services, etc.). Add your approved external domains to the `TrustedDomains` list in that rule before enabling automated alerting, or expect significant noise. The `analytics/README.md` contains guidance on what to add.
+
 ## References
 
 - [Ammar Askar — GitHub Token Stealing via VSCode Webview](https://blog.ammaraskar.com/github-token-stealing/)
