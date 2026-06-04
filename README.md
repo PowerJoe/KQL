@@ -16,6 +16,7 @@ kql-detection-rules/
 │   ├── apt36-vibeware/     # APT36 VibeWare DeskRAT campaign (Linux)
 │   ├── deskcvb/            # DesckVB RAT malspam campaign
 │   └── cve/
+│       ├── cve-2026-9082-drupal-jsonapi-sqli/ # Drupal JSON:API error-based SQLi
 │       ├── cve-2026-48778-notepadpp/      # Notepad++ config.xml ShellExecute hijack
 │       ├── cve-2026-20230-cucm-webdialer/ # Cisco CUCM WebDialer SSRF → root
 │       ├── cve-2026-34159-llamacpp-rpc/   # llama.cpp RPC null-buffer bypass RCE
