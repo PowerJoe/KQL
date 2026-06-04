@@ -14,8 +14,8 @@ kql-detection-rules/
 │   ├── apt36-vibeware/     # APT36 VibeWare DeskRAT campaign (Linux)
 │   ├── deskcvb/            # DesckVB RAT malspam campaign
 │   └── cve/
-│       ├── bluehammer/     # BlueHammer (CVE-2026-33825) LPE
-│       └── marimo-rce/     # Marimo pre-auth RCE (CVE-2026-39987)
+│       ├── cve-2026-33825-bluehammer/  # BlueHammer LPE
+│       └── cve-2026-39987-marimo-rce/ # Marimo pre-auth RCE
 └── README.md
 ```
 
@@ -56,7 +56,7 @@ Hunting queries are designed for **proactive threat hunting** rather than automa
 
 Windows Defender local privilege escalation via a race condition on `RstrtMgr.dll`. The exploit freezes Defender mid-remediation using a batch oplock, forces a Volume Shadow Copy snapshot, then reads `SAM`/`SYSTEM`/`SECURITY` hives from the snapshot to dump credentials.
 
-Rules: [`threat-intelligence/cve/bluehammer/`](threat-intelligence/cve/bluehammer/)
+Rules: [`threat-intelligence/cve/cve-2026-33825-bluehammer/`](threat-intelligence/cve/cve-2026-33825-bluehammer/)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -71,7 +71,7 @@ Rules: [`threat-intelligence/cve/bluehammer/`](threat-intelligence/cve/bluehamme
 
 Pre-authentication remote code execution in Marimo (Python reactive notebook, < 0.23.0). The unauthenticated `/terminal/ws` WebSocket allocates a PTY and spawns a shell with no credential checks. Exploited in-the-wild within 9h 41m of disclosure; credential theft observed in under 3 minutes post-compromise.
 
-Rules: [`threat-intelligence/cve/marimo-rce/`](threat-intelligence/cve/marimo-rce/)
+Rules: [`threat-intelligence/cve/cve-2026-39987-marimo-rce/`](threat-intelligence/cve/cve-2026-39987-marimo-rce/)
 
 | File | Type | Description |
 |------|------|-------------|
