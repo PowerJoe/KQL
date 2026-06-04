@@ -16,6 +16,7 @@ kql-detection-rules/
 │   ├── apt36-vibeware/     # APT36 VibeWare DeskRAT campaign (Linux)
 │   ├── deskcvb/            # DesckVB RAT malspam campaign
 │   └── cve/
+│       ├── cve-2026-34159-llamacpp-rpc/   # llama.cpp RPC null-buffer bypass RCE
 │       ├── cve-2026-34486-tomcat-tribes/  # Tomcat Tribes deserialization RCE
 │       ├── cve-2026-41089-netlogon-cldap/ # Netlogon CLDAP stack overflow (DC DoS)
 │       ├── cve-2026-21858-n8n-fullchain/ # n8n LFI+RCE full chain
