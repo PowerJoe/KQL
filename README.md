@@ -16,6 +16,7 @@ kql-detection-rules/
 │   ├── apt36-vibeware/     # APT36 VibeWare DeskRAT campaign (Linux)
 │   ├── deskcvb/            # DesckVB RAT malspam campaign
 │   └── cve/
+│       ├── cve-2026-21858-n8n-fullchain/ # n8n LFI+RCE full chain
 │       ├── cve-2026-31431-copyfail/    # Copyfail Linux LPE (splice+AF_ALG)
 │       ├── cve-2026-33825-bluehammer/  # BlueHammer LPE
 │       └── cve-2026-39987-marimo-rce/ # Marimo pre-auth RCE
