@@ -21,7 +21,8 @@ kql-detection-rules/
 │   ├── apt36-vibeware/     # APT36 VibeWare DeskRAT campaign (Linux)
 │   ├── deskcvb/            # DesckVB RAT malspam campaign rules
 │   └── cve/
-│       └── bluehammer/     # BlueHammer (CVE-2026-33825) LPE rules
+│       ├── bluehammer/     # BlueHammer (CVE-2026-33825) LPE rules
+│       └── marimo-rce/     # Marimo pre-auth RCE (CVE-2026-39987)
 └── README.md
 ```
 
@@ -72,6 +73,21 @@ Rules: [`threat-intelligence/cve/bluehammer/`](threat-intelligence/cve/bluehamme
 | `analytics/bluehammer-vss-enumeration.kql` | Analytics | VSS enumeration activity |
 | `hunting/bluehammer-all-ttps-combined.kql` | Hunting | Correlates all 3 TTPs per device |
 | `hunting/bluehammer-rstrtmgr-baseline.kql` | Hunting | Baseline for allow-list tuning |
+
+### Marimo RCE — CVE-2026-39987
+
+Pre-authentication remote code execution in Marimo (Python reactive notebook, < 0.23.0). The unauthenticated `/terminal/ws` WebSocket allocates a PTY and spawns a shell with no credential checks. Exploited in-the-wild within 9h 41m of disclosure; credential theft observed in under 3 minutes post-compromise.
+
+Rules: [`threat-intelligence/cve/marimo-rce/`](threat-intelligence/cve/marimo-rce/)
+
+| File | Type | Description |
+|------|------|-------------|
+| `analytics/marimo-rce-shell-spawn.kql` | Analytics | Shell spawned by Python/Marimo — highest fidelity |
+| `analytics/marimo-rce-terminal-ws-access.kql` | Analytics | WebSocket upgrade to `/terminal/ws` in WAF/proxy logs |
+| `analytics/marimo-rce-credential-file-access.kql` | Analytics | SSH keys / cloud tokens read post-exploit |
+| `analytics/marimo-rce-outbound-connection.kql` | Analytics | Unexpected outbound connection from Python/shell |
+| `hunting/marimo-rce-exploit-chain-hunting.kql` | Hunting | Correlates all 3 TTPs per device |
+| `hunting/marimo-rce-post-exploit-discovery.kql` | Hunting | Discovery commands run under Marimo PTY |
 
 ---
 

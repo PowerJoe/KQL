@@ -1,0 +1,40 @@
+// ============================================================
+// Rule Name    : Marimo RCE - Unexpected Outbound Connection from Python
+// CVE          : CVE-2026-39987
+// Platform     : Sentinel | MDE (Linux)
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Command and Control, Exfiltration
+// MITRE Tech   : T1041 - Exfiltration Over C2 Channel
+//              : T1071.001 - Application Layer Protocol: Web Protocols
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects outbound network connections initiated by a
+//                Python/Marimo process to public IP space on
+//                non-standard ports. Following CVE-2026-39987
+//                exploitation, attackers establish reverse shells or
+//                exfiltrate credentials over attacker-controlled
+//                infrastructure. Legitimate Marimo servers listen
+//                inbound and do not initiate outbound connections to
+//                arbitrary external hosts.
+// References   : https://www.endorlabs.com/learn/root-in-one-request-marimos-critical-pre-auth-rce-cve-2026-39987
+// ============================================================
+
+let InternalRanges = dynamic([
+    "10.", "172.16.", "172.17.", "172.18.", "172.19.",
+    "172.20.", "172.21.", "172.22.", "172.23.", "172.24.",
+    "172.25.", "172.26.", "172.27.", "172.28.", "172.29.",
+    "172.30.", "172.31.", "192.168.", "127.", "169.254."
+]);
+DeviceNetworkEvents
+| where Timestamp > ago(24h)
+| where InitiatingProcessFileName in~ ("python3", "python", "python3.11",
+                                        "python3.10", "python3.12",
+                                        "bash", "sh", "curl", "wget", "nc")
+| where not(RemoteIP has_any (InternalRanges))
+| where RemotePort !in (80, 443, 8080, 8888, 2718)  // Exclude typical Marimo listen ports
+| project Timestamp, DeviceName, AccountName,
+          RemoteIP, RemotePort, RemoteUrl, Protocol,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

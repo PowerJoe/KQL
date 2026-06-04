@@ -1,0 +1,43 @@
+// ============================================================
+// Rule Name    : Marimo RCE - WebSocket Upgrade to /terminal/ws
+// CVE          : CVE-2026-39987
+// Platform     : Sentinel (WAF / Reverse Proxy Logs)
+// Severity     : Critical
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Initial Access
+// MITRE Tech   : T1190 - Exploit Public-Facing Application
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects WebSocket upgrade requests to the
+//                unauthenticated /terminal/ws endpoint in
+//                CommonSecurityLog (CEF) from WAF/reverse proxy,
+//                or in Syslog from nginx/Apache. Any successful
+//                HTTP 101 response to /terminal/ws from an external
+//                or unexpected source is an active exploitation
+//                attempt of CVE-2026-39987.
+//                For MDE network-layer visibility, use the companion
+//                hunting rule marimo-rce-exploit-chain-hunting.kql.
+// References   : https://www.endorlabs.com/learn/root-in-one-request-marimos-critical-pre-auth-rce-cve-2026-39987
+// ============================================================
+
+// WAF / proxy logs via CEF (CommonSecurityLog)
+CommonSecurityLog
+| where TimeGenerated > ago(24h)
+| where RequestURL has "/terminal/ws"
+    or RequestURL has "/terminal/ws?"
+| project TimeGenerated, DeviceName = DeviceVendor,
+          SourceIP, DestinationPort, RequestURL,
+          RequestMethod, EventOutcome, AdditionalExtensions
+| union (
+    // nginx / Apache logs via Syslog
+    Syslog
+    | where TimeGenerated > ago(24h)
+    | where SyslogMessage has "/terminal/ws"
+    | where SyslogMessage has_any ("101", "Upgrade", "websocket")
+    | project TimeGenerated, DeviceName = HostName,
+              SourceIP = "", DestinationPort = 0,
+              RequestURL = "/terminal/ws",
+              RequestMethod = "", EventOutcome = "",
+              AdditionalExtensions = SyslogMessage
+)

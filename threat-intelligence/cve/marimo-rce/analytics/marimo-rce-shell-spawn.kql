@@ -1,0 +1,36 @@
+// ============================================================
+// Rule Name    : Marimo RCE - Shell Spawned by Python Process
+// CVE          : CVE-2026-39987
+// Platform     : Sentinel | MDE (Linux)
+// Severity     : Critical
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Execution
+// MITRE Tech   : T1059.004 - Command and Scripting Interpreter: Unix Shell
+//              : T1190 - Exploit Public-Facing Application
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects a shell process (bash/sh/dash) spawned
+//                directly by a Python process, the primary observable
+//                produced by CVE-2026-39987 exploitation. Marimo's
+//                unauthenticated /terminal/ws WebSocket allocates a
+//                PTY and forks a shell as the Marimo process user
+//                (frequently root in containers). Legitimate Marimo
+//                operation does not spawn interactive shells from the
+//                Python runtime.
+// References   : https://www.endorlabs.com/learn/root-in-one-request-marimos-critical-pre-auth-rce-cve-2026-39987
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(24h)
+| where FileName in~ ("bash", "sh", "dash", "zsh", "fish")
+| where InitiatingProcessFileName in~ ("python3", "python", "python3.11",
+                                        "python3.10", "python3.12")
+| where InitiatingProcessCommandLine has_any (
+    "marimo", "uvicorn", "gunicorn", "hypercorn"
+)
+| project Timestamp, DeviceName, AccountName,
+          FileName, ProcessCommandLine,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, InitiatingProcessIntegrityLevel,
+          ReportId

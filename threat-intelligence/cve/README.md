@@ -7,6 +7,7 @@ Detection and hunting rules for specific CVEs, each in its own subdirectory.
 | CVE | Name | Type | Severity |
 |---|---|---|---|
 | CVE-2026-33825 | [BlueHammer](bluehammer/) | Windows LPE | 🔴 High |
+| CVE-2026-39987 | [Marimo RCE](marimo-rce/) | Pre-auth RCE (Python notebook) | 🔴 Critical |
 
 ## Structure
 
