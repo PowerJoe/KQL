@@ -13,6 +13,7 @@ Detection and hunting rules for specific CVEs, each in its own subdirectory.
 | CVE-2026-41089 | [Netlogon CLDAP](cve-2026-41089-netlogon-cldap/) | Pre-auth DC stack overflow via CLDAP — DoS/potential RCE | 🔴 Critical |
 | CVE-2026-34486 | [Tomcat Tribes RCE](cve-2026-34486-tomcat-tribes/) | EncryptInterceptor fail-open → Java deserialization RCE | 🔴 Critical |
 | CVE-2026-34159 | [llama.cpp RPC RCE](cve-2026-34159-llamacpp-rpc/) | Null buffer bypass → arbitrary R/W → pre-auth RCE | 🔴 Critical |
+| CVE-2026-20230 | [Cisco CUCM WebDialer SSRF](cve-2026-20230-cucm-webdialer/) | SSRF → file write → root privilege escalation | 🔴 High |
 
 ## Structure
 
