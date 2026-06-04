@@ -1,0 +1,48 @@
+// ============================================================
+// Rule Name    : VSCode GitHub Token Theft - Notebook Open Followed by External Call (Hunting)
+// Platform     : Sentinel | MDE (Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 7d
+// MITRE Tactic : Execution, Exfiltration
+// MITRE Tech   : T1204.001 - User Execution: Malicious Link
+//              : T1059.007 - JavaScript
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Hunts for devices where a Jupyter notebook (.ipynb)
+//                was created or accessed, followed within 15 minutes
+//                by VSCode or Node making a connection to a non-Microsoft
+//                non-GitHub domain. The attack payload waits 10 seconds
+//                after notebook render, injects keyboard events, installs
+//                a malicious extension, and exfiltrates the token —
+//                all within a few minutes of the notebook being opened.
+// References   : https://blog.ammaraskar.com/github-token-stealing/
+// ============================================================
+
+let TrustedDomains = dynamic([
+    "github.com", "githubusercontent.com", "microsoft.com",
+    "visualstudio.com", "vscode.dev", "update.code.visualstudio.com",
+    "login.microsoftonline.com", "aka.ms", "gallerycdn.vsassets.io"
+]);
+let notebook_opens = DeviceFileEvents
+| where Timestamp > ago(7d)
+| where FileName endswith ".ipynb"
+| where ActionType in ("FileCreated", "FileRead", "FileAccessed")
+| where InitiatingProcessFileName in~ ("Code.exe", "code", "node.exe")
+| project DeviceId, DeviceName, AccountName,
+          NotebookTime = Timestamp, NotebookPath = FolderPath;
+let external_calls = DeviceNetworkEvents
+| where Timestamp > ago(7d)
+| where InitiatingProcessFileName in~ ("Code.exe", "code",
+                                        "node.exe", "Electron.exe")
+| where not(RemoteUrl has_any (TrustedDomains))
+| where not(RemoteIP has_any ("10.", "172.16.", "192.168.", "127."))
+| where RemotePort in (80, 443)
+| project DeviceId, CallTime = Timestamp, RemoteUrl, RemoteIP;
+notebook_opens
+| join kind=inner external_calls on DeviceId
+| where CallTime > NotebookTime
+| where CallTime < NotebookTime + 15m
+| project DeviceName, AccountName, NotebookTime, NotebookPath,
+          CallTime, RemoteUrl, RemoteIP,
+          MinutesAfterNotebook = datetime_diff("minute", CallTime, NotebookTime)
+| order by NotebookTime desc

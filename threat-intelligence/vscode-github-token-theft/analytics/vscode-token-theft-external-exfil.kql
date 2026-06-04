@@ -1,0 +1,41 @@
+// ============================================================
+// Rule Name    : VSCode GitHub Token Theft - Token Exfiltration to External Host
+// Platform     : Sentinel | MDE
+// Severity     : Critical
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Exfiltration
+// MITRE Tech   : T1041 - Exfiltration Over C2 Channel
+//              : T1552.007 - Unsecured Credentials: Container Secrets
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects VSCode or Node processes making outbound HTTP/S
+//                connections to non-Microsoft, non-GitHub domains,
+//                a post-exploitation indicator of stolen GitHub token
+//                exfiltration. After the malicious extension extracts
+//                the session token, it sends it to an attacker-controlled
+//                endpoint. Legitimate VSCode extension activity stays
+//                within GitHub, Microsoft, and registered CDN domains.
+// References   : https://blog.ammaraskar.com/github-token-stealing/
+// ============================================================
+
+let TrustedDomains = dynamic([
+    "github.com", "githubusercontent.com", "githubassets.com",
+    "microsoft.com", "visualstudio.com", "vscode.dev",
+    "marketplace.visualstudio.com", "update.code.visualstudio.com",
+    "az764295.vo.msecnd.net", "gallerycdn.vsassets.io",
+    "login.microsoftonline.com", "aka.ms"
+]);
+DeviceNetworkEvents
+| where Timestamp > ago(24h)
+| where InitiatingProcessFileName in~ (
+    "Code.exe", "code", "code-server",
+    "Electron.exe", "node.exe", "node"
+)
+| where not(RemoteUrl has_any (TrustedDomains))
+| where RemotePort in (80, 443)
+| where not(RemoteIP has_any ("10.", "172.16.", "192.168.", "127."))
+| project Timestamp, DeviceName, AccountName,
+          RemoteUrl, RemoteIP, RemotePort,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

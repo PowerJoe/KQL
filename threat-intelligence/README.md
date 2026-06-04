@@ -1,3 +1,13 @@
+### 🔑 VSCode GitHub Token Theft
+VSCode ≤ v1.97 webview sandbox escape enabling silent GitHub token exfiltration via a malicious Jupyter notebook. No CVE assigned at time of writing.
+
+| Rule | Platform | Severity | MITRE |
+|---|---|---|---|
+| VSCode External Exfiltration | Sentinel / MDE | 🔴 Critical | T1041, T1552.007 |
+| GitHub API Repository Enumeration | Sentinel / MDE | 🔴 High | T1087, T1083 |
+| Workspace Extension Install | Sentinel / MDE | 🔴 High | T1059.007, T1204.001 |
+| extensions.json Outside Config Dir | Sentinel / MDE | 🟠 Medium | T1204.001 |
+
 ### 🇨🇳 TA4922 — Atlas RAT Campaign
 Chinese-speaking threat actor (Silver Fox / Void Arachne overlap) deploying Atlas RAT, RomulusLoader, and SilentRunLoader against European and Asian targets.
 

@@ -1,0 +1,39 @@
+// ============================================================
+// Rule Name    : VSCode GitHub Token Theft - Malicious extensions.json in Repo
+// Platform     : Sentinel | MDE
+// Severity     : Medium
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Execution
+// MITRE Tech   : T1204.001 - User Execution: Malicious Link
+//              : T1566.002 - Phishing: Spearphishing Link
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects the creation of a .vscode/extensions.json file
+//                outside of standard user config directories, indicating
+//                it was cloned as part of a repository rather than
+//                created by the user. Attacker-controlled repositories
+//                embed extensions.json to trigger automatic extension
+//                recommendations, which are then accepted via injected
+//                keyboard events (Ctrl+Shift+A).
+// References   : https://blog.ammaraskar.com/github-token-stealing/
+// ============================================================
+
+DeviceFileEvents
+| where Timestamp > ago(24h)
+| where FileName =~ "extensions.json"
+| where FolderPath has ".vscode"
+// Flag if written to a path that looks like a cloned repo
+// (user home/Documents/repos etc.) rather than the VSCode config dir
+| where FolderPath !has "AppData\\Roaming\\Code"
+    and FolderPath !has "AppData/Roaming/Code"
+    and FolderPath !has ".config/Code"
+| where ActionType in ("FileCreated", "FileModified")
+| where InitiatingProcessFileName in~ (
+    "git.exe", "git", "Code.exe", "code",
+    "node.exe", "node", "curl.exe", "curl"
+)
+| project Timestamp, DeviceName, AccountName,
+          FileName, FolderPath,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

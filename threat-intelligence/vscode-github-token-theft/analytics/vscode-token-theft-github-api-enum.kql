@@ -1,0 +1,41 @@
+// ============================================================
+// Rule Name    : VSCode GitHub Token Theft - GitHub API Repository Enumeration
+// Platform     : Sentinel | MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Collection, Discovery
+// MITRE Tech   : T1087 - Account Discovery
+//              : T1083 - File and Directory Discovery
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects high-frequency or anomalous calls to the
+//                GitHub user repository listing endpoint
+//                (api.github.com/user/repos) initiated by VSCode,
+//                Electron, or Node processes. The malicious extension
+//                installed via the token theft exploit uses the stolen
+//                token to enumerate all repositories (including private)
+//                that the victim's GitHub account has access to.
+//                Legitimate VSCode rarely calls /user/repos directly.
+// References   : https://blog.ammaraskar.com/github-token-stealing/
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(24h)
+| where RemoteUrl has "api.github.com"
+| where RemoteUrl has_any ("/user/repos", "/user/installations",
+                            "/repos?", "repos?per_page=")
+| where InitiatingProcessFileName in~ (
+    "Code.exe", "code", "code-server",
+    "Electron.exe", "node.exe", "node"
+)
+| summarize
+    RequestCount = count(),
+    Endpoints    = make_set(RemoteUrl),
+    FirstSeen    = min(Timestamp),
+    LastSeen     = max(Timestamp)
+    by DeviceName, AccountName, InitiatingProcessFileName,
+       bin(Timestamp, 5m)
+| where RequestCount >= 3
+| project FirstSeen, LastSeen, DeviceName, AccountName,
+          RequestCount, Endpoints, InitiatingProcessFileName

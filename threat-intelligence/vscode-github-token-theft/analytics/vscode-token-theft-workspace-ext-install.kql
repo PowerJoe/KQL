@@ -1,0 +1,42 @@
+// ============================================================
+// Rule Name    : VSCode GitHub Token Theft - Workspace Extension Installed
+// Platform     : Sentinel | MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Persistence, Execution
+// MITRE Tech   : T1059.007 - JavaScript
+//              : T1204.001 - User Execution: Malicious Link
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects VSCode writing new extension files into the
+//                user extensions directory from a workspace-local path,
+//                consistent with the github.dev token theft attack.
+//                The exploit installs a local workspace extension by
+//                injecting synthetic keyboard events that trigger
+//                workbench.extensions.installExtension with
+//                skipPublisherTrust:true, bypassing the publisher trust
+//                dialog entirely.
+// References   : https://blog.ammaraskar.com/github-token-stealing/
+// ============================================================
+
+DeviceFileEvents
+| where Timestamp > ago(24h)
+| where ActionType == "FileCreated"
+| where FolderPath has_any (
+    "\\.vscode\\extensions\\",
+    "/.vscode/extensions/",
+    "\\AppData\\Roaming\\Code\\extensions\\",
+    "\\AppData\\Roaming\\Code - Insiders\\extensions\\"
+)
+// Extension metadata files are the first artifact written
+| where FileName in~ ("package.json", "extension.js",
+                       "extension.vsix", "package.nls.json")
+| where InitiatingProcessFileName in~ (
+    "Code.exe", "code", "code-server",
+    "Electron.exe", "node.exe"
+)
+| project Timestamp, DeviceName, AccountName,
+          FileName, FolderPath,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

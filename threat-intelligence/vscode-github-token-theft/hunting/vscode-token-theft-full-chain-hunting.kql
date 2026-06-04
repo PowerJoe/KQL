@@ -1,0 +1,55 @@
+// ============================================================
+// Rule Name    : VSCode GitHub Token Theft - Full Chain Hunting
+// Platform     : Sentinel | MDE (Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 7d
+// MITRE Tactic : Execution, Collection, Exfiltration
+// MITRE Tech   : T1204.001, T1087, T1041
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Correlates three observable stages of the VSCode
+//                GitHub token theft attack on the same device:
+//                (1) a .vscode/extensions.json appearing outside the
+//                user config directory (repo clone), (2) a new
+//                extension package.json written to the extensions dir,
+//                and (3) VSCode making GitHub API calls to /user/repos.
+//                Two or more signals within the lookback window on the
+//                same device is a high-confidence indicator.
+// References   : https://blog.ammaraskar.com/github-token-stealing/
+// ============================================================
+
+let lookback = 7d;
+let extensions_json_drop = DeviceFileEvents
+| where Timestamp > ago(lookback)
+| where FileName =~ "extensions.json"
+| where FolderPath has ".vscode"
+| where FolderPath !has "AppData\\Roaming\\Code"
+    and FolderPath !has ".config/Code"
+| where ActionType in ("FileCreated", "FileModified")
+| distinct DeviceId, DeviceName;
+let workspace_ext_install = DeviceFileEvents
+| where Timestamp > ago(lookback)
+| where ActionType == "FileCreated"
+| where FolderPath has_any (
+    "\\.vscode\\extensions\\",
+    "AppData\\Roaming\\Code\\extensions\\"
+)
+| where FileName in~ ("package.json", "extension.js")
+| where InitiatingProcessFileName in~ ("Code.exe", "code", "node.exe")
+| distinct DeviceId;
+let github_api_enum = DeviceNetworkEvents
+| where Timestamp > ago(lookback)
+| where RemoteUrl has "api.github.com"
+| where RemoteUrl has "/user/repos"
+| where InitiatingProcessFileName in~ ("Code.exe", "code", "node.exe")
+| distinct DeviceId;
+extensions_json_drop
+| extend HasWorkspaceExt = DeviceId in (workspace_ext_install)
+| extend HasGithubEnum   = DeviceId in (github_api_enum)
+| extend MatchCount = 1 + toint(HasWorkspaceExt) + toint(HasGithubEnum)
+| where MatchCount >= 2
+| project DeviceName, DeviceId,
+          ExtensionsJsonDrop = true, HasWorkspaceExt, HasGithubEnum,
+          MatchCount
+| extend Verdict = "VSCode GitHub Token Theft - Attack Chain Detected"
+| order by MatchCount desc
