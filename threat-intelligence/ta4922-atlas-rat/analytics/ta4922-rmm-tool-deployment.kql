@@ -1,0 +1,38 @@
+// ============================================================
+// Rule Name    : TA4922 - AnyDesk/SyncFuture RMM Deployed by Suspicious Parent
+// Platform     : Sentinel | MDE
+// Severity     : Medium
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Command and Control
+// MITRE Tech   : T1219 - Remote Access Software
+//              : T1105 - Ingress Tool Transfer
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects AnyDesk or SyncFuture being installed or
+//                executed from a non-standard parent process, a
+//                post-exploitation persistence technique used by
+//                TA4922's RomulusLoader to establish legitimate-looking
+//                remote access. Legitimate AnyDesk installs are
+//                initiated by users or managed deployment tools, not
+//                by svchost, dllhost, or script interpreters.
+// References   : https://www.proofpoint.com/us/blog/threat-insight/ta4922-suspected-chinese-crime-group-going-global
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(24h)
+| where FileName in~ ("AnyDesk.exe", "SyncFuture.exe", "syncfuture.exe")
+    or ProcessCommandLine has_any ("anydesk", "syncfuture")
+| where InitiatingProcessFileName !in~ (
+    "explorer.exe", "msiexec.exe", "setup.exe",
+    "install.exe", "cmd.exe", "powershell.exe"
+)
+| where InitiatingProcessFileName in~ (
+    "svchost.exe", "dllhost.exe", "wscript.exe",
+    "cscript.exe", "rundll32.exe", "regsvr32.exe",
+    "mshta.exe", "python.exe", "python3.exe"
+)
+| project Timestamp, DeviceName, AccountName,
+          FileName, ProcessCommandLine,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

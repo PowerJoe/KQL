@@ -1,3 +1,16 @@
+### 🇨🇳 TA4922 — Atlas RAT Campaign
+Chinese-speaking threat actor (Silver Fox / Void Arachne overlap) deploying Atlas RAT, RomulusLoader, and SilentRunLoader against European and Asian targets.
+
+| Rule | Platform | Severity | MITRE |
+|---|---|---|---|
+| Atlas RAT C2 (port 886) | Sentinel / MDE | 🔴 Critical | T1571, T1573 |
+| RomulusLoader C2 (port 1234) | Sentinel / MDE | 🔴 Critical | T1071.001, T1571 |
+| SilentRunLoader C2 + Exfil | Sentinel / MDE | 🔴 Critical | T1041, T1005 |
+| DLL Sideloading (vulkan-1/libcef) | Sentinel / MDE | 🔴 High | T1574.001 |
+| svchost/dllhost Anomalous Parent | Sentinel / MDE | 🔴 High | T1055.012 |
+| Chrome Credential Theft | Sentinel / MDE | 🔴 High | T1555.003 |
+| AnyDesk/SyncFuture RMM Deployment | Sentinel / MDE | 🟠 Medium | T1219 |
+
 ### 🇵🇰 APT36 VibeWare (DeskRAT)
 Pakistan-linked APT36 campaign targeting Indian military on Linux via weaponized .desktop files and a Golang RAT.
 

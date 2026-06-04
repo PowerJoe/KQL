@@ -1,0 +1,31 @@
+// ============================================================
+// Rule Name    : TA4922 - SilentRunLoader C2 and Exfiltration
+// Platform     : Sentinel | MDE
+// Severity     : Critical
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Command and Control, Exfiltration
+// MITRE Tech   : T1041 - Exfiltration Over C2 Channel
+//              : T1005 - Data from Local System
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects connections to the SilentRunLoader C2 domain
+//                and its HTTP POST exfiltration endpoint. SilentRunLoader
+//                is a compiled Python stealer targeting Chrome credentials,
+//                cookies, and browsing history. It downloads cg.exe from
+//                /file/cg.exe and exfiltrates data to /upload.php.
+// IOCs         : ws.ztts88.cyou (18.139.83.110)
+// References   : https://www.proofpoint.com/us/blog/threat-insight/ta4922-suspected-chinese-crime-group-going-global
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(24h)
+| where RemoteUrl has "ztts88.cyou"
+    or RemoteIP == "18.139.83.110"
+    or (RemoteUrl has "/upload.php"
+        and InitiatingProcessFileName in~ ("python.exe", "python3.exe",
+                                            "cg.exe", "cmd.exe"))
+| project Timestamp, DeviceName, AccountName,
+          RemoteIP, RemotePort, RemoteUrl, Protocol,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

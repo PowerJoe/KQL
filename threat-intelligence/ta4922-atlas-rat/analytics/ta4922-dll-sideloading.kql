@@ -1,0 +1,40 @@
+// ============================================================
+// Rule Name    : TA4922 - Suspicious DLL Sideloading (Vulkan/CEF/TeamSpeak)
+// Platform     : Sentinel | MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Defense Evasion
+// MITRE Tech   : T1574.001 - Hijack Execution Flow: DLL Side-Loading
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects TA4922's DLL sideloading technique where
+//                malicious copies of vulkan-1.dll, libcef.dll, or
+//                teamspeak_control.dll are loaded from user-writable
+//                directories (%APPDATA%, %TEMP%, %USERPROFILE%, C:\).
+//                Legitimate versions of these DLLs reside in
+//                System32 or vendor-specific install paths and are
+//                never loaded from temp or user directories.
+// References   : https://www.proofpoint.com/us/blog/threat-insight/ta4922-suspected-chinese-crime-group-going-global
+// ============================================================
+
+DeviceImageLoadEvents
+| where Timestamp > ago(24h)
+| where FileName in~ ("vulkan-1.dll", "libcef.dll", "teamspeak_control.dll")
+| where FolderPath has_any (
+    "\\AppData\\",
+    "\\Temp\\",
+    "\\Users\\Public\\",
+    "C:\\112",          // Known drop path pattern (C:\<IP>ClientSetup)
+    "\\Downloads\\"
+)
+| where FolderPath !has "System32"
+    and FolderPath !has "SysWOW64"
+    and FolderPath !has "NVIDIA"
+    and FolderPath !has "AMD"
+    and FolderPath !has "Intel"
+| project Timestamp, DeviceName, AccountName,
+          FileName, FolderPath,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, InitiatingProcessIntegrityLevel,
+          ReportId

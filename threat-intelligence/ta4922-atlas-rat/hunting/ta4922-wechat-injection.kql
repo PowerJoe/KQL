@@ -1,0 +1,51 @@
+// ============================================================
+// Rule Name    : TA4922 - WeChat Process Injection / Abnormal Spawn (Hunting)
+// Platform     : Sentinel | MDE (Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 7d
+// MITRE Tactic : Defense Evasion
+// MITRE Tech   : T1055 - Process Injection
+//              : T1574.001 - DLL Side-Loading
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Hunts for WeChat.exe being used as an injection target
+//                or spawning unexpected child processes. TA4922 targets
+//                WeChat.exe for DLL sideloading and injection due to its
+//                wide installation base among Asian diaspora targets.
+//                Legitimate WeChat does not spawn shells, scripting
+//                engines, or network utilities.
+// References   : https://www.proofpoint.com/us/blog/threat-insight/ta4922-suspected-chinese-crime-group-going-global
+// ============================================================
+
+let SuspiciousChildren = dynamic([
+    "cmd.exe", "powershell.exe", "pwsh.exe",
+    "wscript.exe", "cscript.exe", "mshta.exe",
+    "rundll32.exe", "regsvr32.exe", "certutil.exe",
+    "curl.exe", "wget.exe", "bitsadmin.exe"
+]);
+// WeChat spawning suspicious child processes
+DeviceProcessEvents
+| where Timestamp > ago(7d)
+| where InitiatingProcessFileName =~ "WeChat.exe"
+| where FileName in~ (SuspiciousChildren)
+| extend DetectionType = "WeChat Spawning Suspicious Child"
+| project Timestamp, DeviceName, AccountName, DetectionType,
+          FileName, ProcessCommandLine,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          ReportId
+| union (
+    // Suspicious processes injecting into / spawning WeChat
+    DeviceProcessEvents
+    | where Timestamp > ago(7d)
+    | where FileName =~ "WeChat.exe"
+    | where InitiatingProcessFileName !in~ (
+        "explorer.exe", "svchost.exe", "services.exe",
+        "WeChatUpdate.exe", "WeChatSetup.exe"
+    )
+    | extend DetectionType = "WeChat Launched by Unexpected Parent"
+    | project Timestamp, DeviceName, AccountName, DetectionType,
+              FileName, ProcessCommandLine,
+              InitiatingProcessFileName, InitiatingProcessCommandLine,
+              ReportId
+)
+| sort by Timestamp desc

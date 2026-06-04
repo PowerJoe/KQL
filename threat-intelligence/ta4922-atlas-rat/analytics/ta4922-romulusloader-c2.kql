@@ -1,0 +1,30 @@
+// ============================================================
+// Rule Name    : TA4922 - RomulusLoader C2 Communication
+// Platform     : Sentinel | MDE
+// Severity     : Critical
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Command and Control
+// MITRE Tech   : T1071.001 - Application Layer Protocol: Web Protocols
+//              : T1571 - Non-Standard Port
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects outbound connections to confirmed RomulusLoader
+//                C2 infrastructure. RomulusLoader communicates over HTTP
+//                on TCP/1234, uses XOR + ZLib for payload decryption,
+//                and injects into svchost.exe or dllhost.exe via process
+//                hollowing or shellcode injection. It also fetches
+//                next-stage payloads from 103.214.172.33.
+// IOCs         : 43.156.77.97:1234, 103.214.172.33
+// References   : https://www.proofpoint.com/us/blog/threat-insight/ta4922-suspected-chinese-crime-group-going-global
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(24h)
+| where RemoteIP in ("43.156.77.97", "103.214.172.33")
+    or (RemotePort == 1234 and RemoteIP !startswith "192.168."
+        and RemoteIP !startswith "10." and RemoteIP !startswith "172.")
+| project Timestamp, DeviceName, AccountName,
+          RemoteIP, RemotePort, RemoteUrl, Protocol,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

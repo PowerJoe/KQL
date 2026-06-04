@@ -1,0 +1,45 @@
+// ============================================================
+// Rule Name    : TA4922 - Payload Hosting and Delivery Infrastructure (Hunting)
+// Platform     : Sentinel | MDE (Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 7d
+// MITRE Tactic : Initial Access, Command and Control
+// MITRE Tech   : T1566.002 - Phishing: Spearphishing Link
+//              : T1105 - Ingress Tool Transfer
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Hunts for connections to TA4922 payload distribution
+//                infrastructure. The group stages archives and executables
+//                on file-sharing platforms (GoFile, LimeWire, MediaFire)
+//                and a dedicated landing page (nwphotoblog.com). Also
+//                surfaces all C2 IP hits across all three malware
+//                families (Atlas RAT, RomulusLoader, SilentRunLoader).
+// IOCs         : nwphotoblog.com, ztts88.cyou, 206.238.115.58,
+//                154.211.86.110, 43.156.77.97, 103.214.172.33,
+//                18.139.83.110
+// References   : https://www.proofpoint.com/us/blog/threat-insight/ta4922-suspected-chinese-crime-group-going-global
+// ============================================================
+
+let C2IPs = dynamic(["206.238.115.58", "154.211.86.110",
+                      "43.156.77.97", "103.214.172.33", "18.139.83.110"]);
+let DistribDomains = dynamic([
+    "nwphotoblog.com", "ztts88.cyou", "srt.tw"
+]);
+// Direct IOC hits
+DeviceNetworkEvents
+| where Timestamp > ago(7d)
+| where RemoteIP in (C2IPs) or RemoteUrl has_any (DistribDomains)
+| extend DetectionType = case(
+    RemoteIP == "206.238.115.58" or RemoteIP == "154.211.86.110", "Atlas RAT C2",
+    RemoteIP == "43.156.77.97",                                    "RomulusLoader C2",
+    RemoteIP == "103.214.172.33",                                  "RomulusLoader Payload Host",
+    RemoteIP == "18.139.83.110" or RemoteUrl has "ztts88.cyou",   "SilentRunLoader C2",
+    RemoteUrl has "nwphotoblog.com",                               "Landing Page",
+    RemoteUrl has "srt.tw",                                        "Shortened URL Redirector",
+    "Known IOC"
+)
+| project Timestamp, DeviceName, AccountName, DetectionType,
+          RemoteIP, RemotePort, RemoteUrl,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          ReportId
+| sort by Timestamp desc

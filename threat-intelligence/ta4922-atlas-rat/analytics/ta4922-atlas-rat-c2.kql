@@ -1,0 +1,29 @@
+// ============================================================
+// Rule Name    : TA4922 - Atlas RAT C2 Communication
+// Platform     : Sentinel | MDE
+// Severity     : Critical
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Command and Control
+// MITRE Tech   : T1571 - Non-Standard Port
+//              : T1573 - Encrypted Channel
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects outbound TCP connections to confirmed Atlas
+//                RAT C2 infrastructure on port 886. Atlas RAT sends
+//                an initial "SFuck\x00\x00\x00" check-in string and
+//                encrypts subsequent system information using ChaCha.
+//                Port 886 is uncommon in legitimate traffic — any
+//                connection on this port warrants investigation.
+// IOCs         : 206.238.115.58:886, 154.211.86.110:886
+// References   : https://www.proofpoint.com/us/blog/threat-insight/ta4922-suspected-chinese-crime-group-going-global
+// ============================================================
+
+DeviceNetworkEvents
+| where Timestamp > ago(24h)
+| where RemoteIP in ("206.238.115.58", "154.211.86.110")
+    or RemotePort == 886
+| project Timestamp, DeviceName, AccountName,
+          RemoteIP, RemotePort, RemoteUrl, Protocol,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, ReportId

@@ -1,0 +1,49 @@
+// ============================================================
+// Rule Name    : TA4922 - Full Chain TTP Correlation (Hunting)
+// Platform     : Sentinel | MDE (Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 7d
+// MITRE Tactic : Defense Evasion, Command and Control, Credential Access
+// MITRE Tech   : T1574.001, T1071.001, T1571, T1555.003
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Correlates three core TA4922 TTPs on the same device:
+//                (1) DLL sideloading of vulkan-1.dll / libcef.dll from
+//                a user-writable path, (2) network connection to Atlas
+//                RAT or RomulusLoader C2 infrastructure, and (3) Chrome
+//                credential file access from a non-browser process.
+//                Devices matching two or more signals are high-confidence
+//                compromises. Run daily.
+// References   : https://www.proofpoint.com/us/blog/threat-insight/ta4922-suspected-chinese-crime-group-going-global
+// ============================================================
+
+let lookback = 7d;
+let C2IPs = dynamic(["206.238.115.58", "154.211.86.110",
+                      "43.156.77.97", "103.214.172.33", "18.139.83.110"]);
+let dll_sideload = DeviceImageLoadEvents
+| where Timestamp > ago(lookback)
+| where FileName in~ ("vulkan-1.dll", "libcef.dll", "teamspeak_control.dll")
+| where FolderPath has_any ("\\AppData\\", "\\Temp\\", "\\Users\\Public\\")
+| distinct DeviceId, DeviceName;
+let c2_connection = DeviceNetworkEvents
+| where Timestamp > ago(lookback)
+| where RemoteIP in (C2IPs)
+    or RemotePort == 886
+    or RemoteUrl has "ztts88.cyou"
+| distinct DeviceId;
+let chrome_theft = DeviceFileEvents
+| where Timestamp > ago(lookback)
+| where FolderPath has_all ("Chrome", "User Data")
+| where FileName in~ ("Login Data", "Cookies", "History")
+| where InitiatingProcessFileName !in~ ("chrome.exe", "msedge.exe",
+                                         "brave.exe", "MsMpEng.exe")
+| distinct DeviceId;
+dll_sideload
+| extend HasC2        = DeviceId in (c2_connection)
+| extend HasChrome    = DeviceId in (chrome_theft)
+| extend MatchCount   = 1 + toint(HasC2) + toint(HasChrome)
+| where MatchCount >= 2
+| project DeviceName, DeviceId,
+          DllSideload = true, HasC2, HasChrome, MatchCount
+| extend Verdict = "TA4922 Atlas RAT - Multiple TTPs Detected"
+| order by MatchCount desc

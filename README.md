@@ -11,6 +11,7 @@ kql-detection-rules/
 ├── threat-intelligence/
 │   ├── shai-hulud/         # Shai-Hulud supply chain campaign
 │   ├── supply-chain/       # Generic supply chain rules
+│   ├── ta4922-atlas-rat/   # TA4922 Atlas RAT campaign (Chinese threat actor)
 │   ├── apt36-vibeware/     # APT36 VibeWare DeskRAT campaign (Linux)
 │   ├── deskcvb/            # DesckVB RAT malspam campaign
 │   └── cve/

@@ -1,0 +1,33 @@
+// ============================================================
+// Rule Name    : TA4922 - Process Injection into svchost/dllhost
+// Platform     : Sentinel | MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Defense Evasion, Privilege Escalation
+// MITRE Tech   : T1055.012 - Process Injection: Process Hollowing
+//              : T1055 - Process Injection
+// Author       : PJ131
+// Last Updated : 2026-06-04
+// Description  : Detects RomulusLoader injecting into svchost.exe or
+//                dllhost.exe from non-standard parent processes.
+//                Legitimate svchost.exe is always spawned by services.exe
+//                or wininit.exe; dllhost.exe by svchost.exe or COM
+//                infrastructure. Any other parent is anomalous and
+//                consistent with TA4922 process hollowing behavior.
+// References   : https://www.proofpoint.com/us/blog/threat-insight/ta4922-suspected-chinese-crime-group-going-global
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(24h)
+| where FileName in~ ("svchost.exe", "dllhost.exe")
+| where InitiatingProcessFileName !in~ (
+    "services.exe", "wininit.exe", "svchost.exe",
+    "msiexec.exe", "TiWorker.exe", "WmiPrvSE.exe",
+    "taskeng.exe", "taskhost.exe", "taskhostw.exe"
+)
+| project Timestamp, DeviceName, AccountName,
+          FileName, ProcessCommandLine,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, InitiatingProcessIntegrityLevel,
+          ReportId
