@@ -8,6 +8,7 @@ Detection and hunting rules for specific CVEs, each in its own subdirectory.
 |---|---|---|---|
 | CVE-2026-33825 | [BlueHammer](cve-2026-33825-bluehammer/) | Windows LPE | 🔴 High |
 | CVE-2026-39987 | [Marimo RCE](cve-2026-39987-marimo-rce/) | Pre-auth RCE (Python notebook) | 🔴 Critical |
+| CVE-2026-31431 | [Copyfail](cve-2026-31431-copyfail/) | Linux LPE — splice()+AF_ALG SUID overwrite | 🔴 Critical |
 
 ## Structure
 
