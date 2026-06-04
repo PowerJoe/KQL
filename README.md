@@ -16,8 +16,10 @@ kql-detection-rules/
 │   ├── custom-detections/  # MDE Custom Detection Rules
 │   └── hunting/            # Advanced Hunting Queries
 ├── threat-intelligence/
-│   └── supply-chain/       # Supply chain campaign rules
-│       └── shai-hulud/     # Shai-Hulud campaign IOCs & rules
+│   ├── supply-chain/       # Supply chain campaign rules
+│   │   └── shai-hulud/     # Shai-Hulud campaign IOCs & rules
+│   └── cve/
+│       └── bluehammer/     # BlueHammer (CVE-2026-33825) LPE rules
 └── README.md
 ```
 
@@ -49,6 +51,25 @@ Hunting queries are designed for **proactive threat hunting** rather than automa
 - Broad coverage over longer timeframes
 - Lower false positive rates in manual analysis
 - Pivoting on known IOCs from threat intelligence
+
+---
+
+## 🔴 CVE Coverage
+
+### BlueHammer — CVE-2026-33825
+
+Windows Defender local privilege escalation via a race condition on `RstrtMgr.dll`. The exploit freezes Defender mid-remediation using a batch oplock, forces a Volume Shadow Copy snapshot, then reads `SAM`/`SYSTEM`/`SECURITY` hives from the snapshot to dump credentials.
+
+Rules: [`threat-intelligence/cve/bluehammer/`](threat-intelligence/cve/bluehammer/)
+
+| File | Type | Description |
+|------|------|-------------|
+| `analytics/bluehammer-rstrtmgr-oplock.kql` | Analytics | Oplock on RstrtMgr.dll — highest fidelity |
+| `analytics/bluehammer-vss-sam-access.kql` | Analytics | SAM hive read from VSS snapshot |
+| `analytics/bluehammer-suspicious-services-exec.kql` | Analytics | Suspicious service execution |
+| `analytics/bluehammer-vss-enumeration.kql` | Analytics | VSS enumeration activity |
+| `hunting/bluehammer-all-ttps-combined.kql` | Hunting | Correlates all 3 TTPs per device |
+| `hunting/bluehammer-rstrtmgr-baseline.kql` | Hunting | Baseline for allow-list tuning |
 
 ---
 

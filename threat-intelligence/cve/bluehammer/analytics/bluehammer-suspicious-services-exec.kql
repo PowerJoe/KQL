@@ -1,0 +1,26 @@
+// ============================================================
+// Rule Name    : BlueHammer - Suspicious services.exe Spawn
+// CVE          : CVE-2026-33825
+// Platform     : Sentinel | MDE
+// Severity     : Medium
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Privilege Escalation
+// MITRE Tech   : T1543.003 - Create or Modify System Process: Windows Service
+// Author       : PJ131
+// Last Updated : 2026-04-19
+// Description  : Detects services.exe being initiated by a non-SYSTEM
+//                low/medium integrity process, a stage in the BlueHammer
+//                privilege escalation chain. Legitimate services.exe is
+//                spawned by SYSTEM (S-1-5-18).
+// ============================================================
+
+DeviceProcessEvents
+| where Timestamp > ago(24h)
+| where FileName =~ "services.exe"
+| where InitiatingProcessIntegrityLevel in ("Low", "Medium")
+| where InitiatingProcessAccountSid !startswith "S-1-5-18"
+| project Timestamp, DeviceName,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, InitiatingProcessIntegrityLevel,
+          InitiatingProcessAccountSid, ReportId

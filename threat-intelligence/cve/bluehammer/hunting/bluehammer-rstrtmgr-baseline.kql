@@ -1,0 +1,21 @@
+// ============================================================
+// Rule Name    : BlueHammer - RstrtMgr.dll Load Baseline (Hunting)
+// CVE          : CVE-2026-33825
+// Platform     : Sentinel | MDE (Advanced Hunting)
+// Type         : Baseline / tuning query (not for alerting)
+// Lookback     : 7d
+// Author       : PJ131
+// Last Updated : 2026-04-19
+// Description  : Baseline query to surface which processes legitimately
+//                load RstrtMgr.dll in your environment, and at which
+//                integrity level. Run this BEFORE enabling the
+//                bluehammer-rstrtmgr-oplock analytics rule so you can
+//                tune its allow-list and avoid false positives from
+//                installers and maintenance tooling.
+// ============================================================
+
+DeviceImageLoadEvents
+| where Timestamp > ago(7d)
+| where FileName =~ "RstrtMgr.dll"
+| summarize LoadCount = count() by InitiatingProcessFileName, InitiatingProcessIntegrityLevel
+| order by LoadCount desc

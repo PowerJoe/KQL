@@ -1,0 +1,44 @@
+// ============================================================
+// Rule Name    : BlueHammer - All TTPs Combined (Hunting)
+// CVE          : CVE-2026-33825
+// Platform     : Sentinel | MDE (Advanced Hunting)
+// Type         : Hunting query (not for automated alerting)
+// Lookback     : 24h
+// MITRE Tactic : Privilege Escalation, Credential Access
+// MITRE Tech   : T1003.002 - OS Credential Dumping: SAM
+// Author       : PJ131
+// Last Updated : 2026-04-19
+// Description  : High-confidence hunting query that correlates the three
+//                core BlueHammer TTPs on the same device within the
+//                lookback window: (1) SAM/SYSTEM/SECURITY read from a VSS
+//                snapshot, (2) services.exe spawned by a non-SYSTEM
+//                low/medium integrity process, and (3) VSS enumeration by
+//                a low/medium integrity process. A device matching all
+//                three is a strong indicator of an active BlueHammer LPE.
+// Usage        : Run daily as a hunting query.
+// ============================================================
+
+let devices_with_vss = DeviceFileEvents
+| where Timestamp > ago(24h)
+| where FolderPath has "HarddiskVolumeShadowCopy"
+| where FileName in~ ("SAM", "SYSTEM", "SECURITY")
+| where InitiatingProcessIntegrityLevel in ("Low", "Medium")
+| distinct DeviceId, DeviceName;
+let devices_with_service = DeviceProcessEvents
+| where Timestamp > ago(24h)
+| where FileName =~ "services.exe"
+| where InitiatingProcessIntegrityLevel in ("Low", "Medium")
+| where InitiatingProcessAccountSid !startswith "S-1-5-18"
+| distinct DeviceId;
+let devices_with_vss_enum = DeviceEvents
+| where Timestamp > ago(24h)
+| where AdditionalFields has "HarddiskVolumeShadowCopy"
+| where InitiatingProcessIntegrityLevel in ("Low", "Medium")
+| distinct DeviceId;
+devices_with_vss
+| join kind=inner devices_with_service on DeviceId
+| join kind=inner devices_with_vss_enum on DeviceId
+| project DeviceName, DeviceId
+| extend
+    Verdict = "BlueHammer - All TTPs Present",
+    Priority = "Immediate Remediation Required"

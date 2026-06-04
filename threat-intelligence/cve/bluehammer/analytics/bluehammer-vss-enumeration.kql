@@ -1,0 +1,25 @@
+// ============================================================
+// Rule Name    : BlueHammer - Volume Shadow Copy Enumeration
+// CVE          : CVE-2026-33825
+// Platform     : Sentinel | MDE
+// Severity     : Medium
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Discovery, Credential Access
+// MITRE Tech   : T1003.002 - OS Credential Dumping: Security Account Manager
+// Author       : PJ131
+// Last Updated : 2026-04-19
+// Description  : Detects enumeration of Volume Shadow Copy snapshots by a
+//                low/medium integrity process. BlueHammer enumerates VSS
+//                to locate the snapshot containing the freshly captured
+//                SAM hive after forcing Defender to create one.
+// ============================================================
+
+DeviceEvents
+| where Timestamp > ago(24h)
+| where AdditionalFields has "HarddiskVolumeShadowCopy"
+| where InitiatingProcessIntegrityLevel in ("Low", "Medium")
+| project Timestamp, DeviceName, ActionType,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, InitiatingProcessIntegrityLevel,
+          AdditionalFields, ReportId

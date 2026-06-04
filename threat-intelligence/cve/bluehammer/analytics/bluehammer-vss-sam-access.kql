@@ -1,0 +1,27 @@
+// ============================================================
+// Rule Name    : BlueHammer - VSS Shadow Copy SAM/SYSTEM/SECURITY Access
+// CVE          : CVE-2026-33825
+// Platform     : Sentinel | MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Credential Access, Privilege Escalation
+// MITRE Tech   : T1003.002 - OS Credential Dumping: Security Account Manager
+// Author       : PJ131
+// Last Updated : 2026-04-19
+// Description  : Detects a low/medium integrity process accessing the
+//                SAM, SYSTEM or SECURITY hives from within a Volume
+//                Shadow Copy. BlueHammer abuses VSS snapshots to read
+//                the SAM hive that is otherwise locked, enabling local
+//                privilege escalation via credential dumping.
+// ============================================================
+
+DeviceFileEvents
+| where Timestamp > ago(24h)
+| where FolderPath has "HarddiskVolumeShadowCopy"
+| where FileName in~ ("SAM", "SYSTEM", "SECURITY")
+| where InitiatingProcessIntegrityLevel in ("Low", "Medium")
+| project Timestamp, DeviceName, FileName, FolderPath,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, InitiatingProcessIntegrityLevel,
+          ReportId

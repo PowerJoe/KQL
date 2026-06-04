@@ -1,0 +1,41 @@
+// ============================================================
+// Rule Name    : BlueHammer - Exclusive Oplock on RstrtMgr.dll
+// CVE          : CVE-2026-33825
+// Platform     : Sentinel | MDE
+// Severity     : High
+// Frequency    : Every 1h
+// Lookback     : 24h
+// MITRE Tactic : Privilege Escalation, Credential Access
+// MITRE Tech   : T1003.002 - OS Credential Dumping: Security Account Manager
+// Author       : PJ131
+// Last Updated : 2026-04-19
+// Description  : Detects a non-system process loading RstrtMgr.dll with
+//                exclusive access. BlueHammer places a batch oplock on
+//                this DLL to freeze Windows Defender mid-remediation,
+//                forcing Defender to create a Volume Shadow Copy snapshot
+//                that the exploit can then access. RstrtMgr.dll is
+//                normally only loaded by processes performing Restart
+//                Manager operations.
+// Note         : Requires MDE Advanced Features -> DLL load monitoring.
+//                Run the baseline query (hunting/) first to tune the
+//                allow-list for your environment.
+// ============================================================
+
+DeviceImageLoadEvents
+| where Timestamp > ago(24h)
+| where FileName =~ "RstrtMgr.dll"
+| where InitiatingProcessIntegrityLevel in ("Low", "Medium")
+| where InitiatingProcessAccountSid !startswith "S-1-5-18" // Not SYSTEM
+| where InitiatingProcessFileName !in~ (
+    "msiexec.exe",
+    "TiWorker.exe",
+    "TrustedInstaller.exe",
+    "svchost.exe",
+    "WerFault.exe",
+    "cleanmgr.exe"
+)
+| project Timestamp, DeviceName,
+          InitiatingProcessFileName, InitiatingProcessCommandLine,
+          InitiatingProcessAccountName, InitiatingProcessIntegrityLevel,
+          InitiatingProcessId, InitiatingProcessParentFileName,
+          FolderPath, ReportId
