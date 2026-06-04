@@ -14,6 +14,7 @@ Detection and hunting rules for specific CVEs, each in its own subdirectory.
 | CVE-2026-34486 | [Tomcat Tribes RCE](cve-2026-34486-tomcat-tribes/) | EncryptInterceptor fail-open → Java deserialization RCE | 🔴 Critical |
 | CVE-2026-34159 | [llama.cpp RPC RCE](cve-2026-34159-llamacpp-rpc/) | Null buffer bypass → arbitrary R/W → pre-auth RCE | 🔴 Critical |
 | CVE-2026-20230 | [Cisco CUCM WebDialer SSRF](cve-2026-20230-cucm-webdialer/) | SSRF → file write → root privilege escalation | 🔴 High |
+| CVE-2026-48778 | [Notepad++ Code Execution](cve-2026-48778-notepadpp/) | config.xml poisoning → ShellExecute hijack | 🔴 High |
 
 ## Structure
 
